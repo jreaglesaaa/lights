@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Tuya Switch</title>
+
+  <style>
+    /* 🌌 Galaxy background */
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at top, #1a0033, #000);
+      color: white;
+      overflow: hidden;
+    }
+
+    /* ✨ Stars */
+    body::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image:
+        radial-gradient(1px 1px at 20% 30%, white, transparent),
+        radial-gradient(1px 1px at 70% 40%, white, transparent),
+        radial-gradient(2px 2px at 40% 80%, white, transparent),
+        radial-gradient(1px 1px at 90% 10%, white, transparent);
+      opacity: 0.8;
+      animation: twinkle 6s infinite alternate;
+    }
+
+    @keyframes twinkle {
+      from { opacity: 0.4; }
+      to { opacity: 1; }
+    }
+
+    /* 🪐 Card */
+    .container {
+      position: relative;
+      z-index: 1;
+      background: rgba(20, 0, 40, 0.75);
+      padding: 50px;
+      border-radius: 20px;
+      box-shadow: 0 0 40px #7f00ff;
+      width: 320px;
+    }
+
+    h1 {
+      margin-bottom: 30px;
+      letter-spacing: 2px;
+    }
+
+    /* 🔘 Button */
+    button {
+      padding: 20px 40px;
+      font-size: 24px;
+      cursor: pointer;
+      border: none;
+      border-radius: 50px;
+      background: linear-gradient(90deg, #7f00ff, #00c6ff);
+      color: white;
+      box-shadow: 0 0 20px #7f00ff;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    button:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 30px #00c6ff;
+    }
+
+    /* 📜 Status */
+    #status {
+      margin-top: 20px;
+      font-weight: bold;
+      opacity: 0.9;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>🌌 Tuya Switch</h1>
+    <button id="toggleBtn">Turn ON</button>
+    <div id="status"></div>
+  </div>
+
+  <!-- 🔒 LOGIC UNCHANGED -->
+  <script>
+    let isOn = false;
+
+    const btn = document.getElementById('toggleBtn');
+    const status = document.getElementById('status');
+
+    btn.addEventListener('click', () => {
+      const newState = !isOn;
+
+      fetch('/toggle', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ state: newState })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          isOn = newState;
+          btn.textContent = isOn ? 'Turn OFF' : 'Turn ON';
+          status.textContent = `Switch is now ${isOn ? 'ON 🌠' : 'OFF 🌑'}`;
+        } else {
+          status.textContent = `Error: ${data.error}`;
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        status.textContent = 'Request failed';
+      });
+    });
+  </script>
+</body>
+</html>
