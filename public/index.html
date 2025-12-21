@@ -39,17 +39,16 @@
       position: relative;
       z-index: 1;
       background: rgba(20,0,40,0.6);
-      padding: 35px 25px;
+      padding: 30px 20px;
       border-radius: 25px;
       width: 90%;
-      max-width: 360px;
+      max-width: 330px;
       text-align: center;
       box-shadow: 0 0 25px rgba(127,0,255,0.5);
       overflow: hidden;
       transition: box-shadow 0.5s;
     }
 
-    /* ✨ Unlock glow */
     .container.unlocked {
       animation: galaxyGlow 2.5s infinite alternate;
     }
@@ -58,7 +57,7 @@
       to { box-shadow: 0 0 55px #00c6ff; }
     }
 
-    /* 💫 Ripple shockwave */
+    /* 💫 Ripple */
     .ripple {
       position: absolute;
       width: 20px;
@@ -69,58 +68,69 @@
       pointer-events: none;
     }
     @keyframes ripple {
-      to {
-        transform: scale(15);
-        opacity: 0;
-      }
+      to { transform: scale(15); opacity: 0; }
     }
 
-    h1 {
-      margin-bottom: 15px;
-      letter-spacing: 2px;
-    }
+    h1 { margin-bottom: 10px; }
 
-    /* 🔢 Keypad */
+    /* 🔢 Display */
     .display {
-      font-size: 1.4rem;
+      font-size: 1.3rem;
       letter-spacing: 6px;
-      margin-bottom: 15px;
-      min-height: 30px;
+      margin-bottom: 12px;
+      min-height: 28px;
+      opacity: 0.9;
     }
 
+    /* 🔢 Compact Keypad */
     .keypad {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      margin-bottom: 20px;
+      gap: 8px;
+      justify-content: center;
+      max-width: 180px;
+      margin: 0 auto 18px;
     }
 
     .keypad button {
-      padding: 15px;
-      font-size: 1.2rem;
+      width: 52px;
+      height: 52px;
+      font-size: 1.05rem;
       border-radius: 50%;
       border: none;
-      background: rgba(127,0,255,0.6);
+      background: radial-gradient(circle at top,
+        rgba(0,198,255,0.9),
+        rgba(127,0,255,0.7)
+      );
       color: white;
       cursor: pointer;
-      transition: transform 0.1s, background 0.3s;
+      box-shadow:
+        0 0 8px rgba(0,198,255,0.6),
+        inset 0 0 6px rgba(255,255,255,0.2);
+      transition: transform 0.1s ease, box-shadow 0.2s ease;
     }
 
     .keypad button:hover {
-      transform: scale(1.1);
-      background: rgba(0,198,255,0.8);
+      transform: scale(1.08);
+      box-shadow:
+        0 0 14px rgba(0,198,255,0.9),
+        inset 0 0 8px rgba(255,255,255,0.3);
+    }
+
+    .keypad button:active {
+      transform: scale(0.95);
     }
 
     /* 🔘 Toggle Button */
     #toggleBtn {
-      padding: 16px;
-      font-size: 1.3rem;
+      padding: 14px;
+      font-size: 1.25rem;
       border-radius: 50px;
       border: none;
       background: linear-gradient(90deg,#7f00ff,#00c6ff);
       color: white;
       width: 100%;
-      max-width: 240px;
+      max-width: 220px;
       opacity: 0.4;
       cursor: not-allowed;
       transition: all 0.4s;
@@ -137,7 +147,6 @@
       to { box-shadow: 0 0 30px #00c6ff; }
     }
 
-    /* 🌈 ON / OFF color shift */
     .on {
       background: linear-gradient(90deg,#00ffcc,#00c6ff) !important;
     }
@@ -146,7 +155,7 @@
     }
 
     #status {
-      margin-top: 15px;
+      margin-top: 12px;
       font-weight: bold;
     }
   </style>
