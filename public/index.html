@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
+    /* 🌌 Fullscreen galaxy background */
     body {
       margin: 0;
       height: 100vh;
@@ -13,13 +14,21 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      font-family: Arial, sans-serif;
+      font-family: 'Arial', sans-serif;
       color: white;
+      position: relative;
       background: #000;
     }
 
-    /* 🌠 Stars */
-    .stars { position: absolute; inset: 0; overflow: hidden; z-index: 0; }
+    /* 🌠 Moving stars layer */
+    .stars {
+      position: absolute;
+      inset: 0;
+      background: transparent;
+      z-index: 0;
+      overflow: hidden;
+    }
+
     .star {
       position: absolute;
       width: 2px;
@@ -29,134 +38,71 @@
       opacity: 0.8;
       animation: moveStars linear infinite;
     }
+
     @keyframes moveStars {
       from { transform: translateY(0); }
       to { transform: translateY(-100vh); }
     }
 
-    /* 🪐 Card */
+    /* 🪐 Container Card */
     .container {
       position: relative;
       z-index: 1;
-      background: rgba(20,0,40,0.6);
-      padding: 30px 20px;
+      background: rgba(20, 0, 40, 0.6);
+      padding: 40px 30px;
       border-radius: 25px;
+      box-shadow: 0 0 30px rgba(127, 0, 255, 0.5);
       width: 90%;
-      max-width: 330px;
+      max-width: 400px;
       text-align: center;
-      box-shadow: 0 0 25px rgba(127,0,255,0.5);
-      overflow: hidden;
-      transition: box-shadow 0.5s;
     }
 
-    .container.unlocked {
-      animation: galaxyGlow 2.5s infinite alternate;
-    }
-    @keyframes galaxyGlow {
-      from { box-shadow: 0 0 25px #7f00ff; }
-      to { box-shadow: 0 0 55px #00c6ff; }
+    h1 {
+      margin-bottom: 25px;
+      letter-spacing: 2px;
+      font-size: 1.8rem;
     }
 
-    /* 💫 Ripple */
-    .ripple {
-      position: absolute;
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      border: 2px solid rgba(0,198,255,0.8);
-      animation: ripple 1.2s ease-out forwards;
-      pointer-events: none;
-    }
-    @keyframes ripple {
-      to { transform: scale(15); opacity: 0; }
-    }
-
-    h1 { margin-bottom: 10px; }
-
-    /* 🔢 Display */
-    .display {
-      font-size: 1.3rem;
-      letter-spacing: 6px;
-      margin-bottom: 12px;
-      min-height: 28px;
-      opacity: 0.9;
-    }
-
-    /* 🔢 Compact Keypad */
-    .keypad {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-      justify-content: center;
-      max-width: 180px;
-      margin: 0 auto 18px;
-    }
-
-    .keypad button {
-      width: 52px;
-      height: 52px;
-      font-size: 1.05rem;
-      border-radius: 50%;
-      border: none;
-      background: radial-gradient(circle at top,
-        rgba(0,198,255,0.9),
-        rgba(127,0,255,0.7)
-      );
-      color: white;
-      cursor: pointer;
-      box-shadow:
-        0 0 8px rgba(0,198,255,0.6),
-        inset 0 0 6px rgba(255,255,255,0.2);
-      transition: transform 0.1s ease, box-shadow 0.2s ease;
-    }
-
-    .keypad button:hover {
-      transform: scale(1.08);
-      box-shadow:
-        0 0 14px rgba(0,198,255,0.9),
-        inset 0 0 8px rgba(255,255,255,0.3);
-    }
-
-    .keypad button:active {
-      transform: scale(0.95);
-    }
-
-    /* 🔘 Toggle Button */
-    #toggleBtn {
-      padding: 14px;
-      font-size: 1.25rem;
-      border-radius: 50px;
-      border: none;
-      background: linear-gradient(90deg,#7f00ff,#00c6ff);
-      color: white;
+    input {
+      padding: 12px;
       width: 100%;
-      max-width: 220px;
-      opacity: 0.4;
-      cursor: not-allowed;
-      transition: all 0.4s;
+      max-width: 250px;
+      margin-bottom: 15px;
+      border-radius: 25px;
+      border: none;
+      text-align: center;
+      font-size: 1.1rem;
     }
 
-    #toggleBtn.enabled {
-      opacity: 1;
+    button {
+      padding: 18px 50px;
+      font-size: 1.4rem;
       cursor: pointer;
-      animation: buttonGlow 1.8s infinite alternate;
+      border: none;
+      border-radius: 50px;
+      background: linear-gradient(90deg, #7f00ff, #00c6ff);
+      color: white;
+      box-shadow: 0 0 20px rgba(127, 0, 255, 0.5);
+      transition: transform 0.2s, box-shadow 0.2s;
+      width: 100%;
+      max-width: 250px;
+      opacity: 0.5;
     }
 
-    @keyframes buttonGlow {
-      from { box-shadow: 0 0 15px #7f00ff; }
-      to { box-shadow: 0 0 30px #00c6ff; }
+    button.enabled {
+      opacity: 1;
     }
 
-    .on {
-      background: linear-gradient(90deg,#00ffcc,#00c6ff) !important;
-    }
-    .off {
-      background: linear-gradient(90deg,#7f00ff,#ff0080) !important;
+    button:hover.enabled {
+      transform: scale(1.05);
+      box-shadow: 0 0 30px rgba(0, 198, 255, 0.6);
     }
 
     #status {
-      margin-top: 12px;
+      margin-top: 20px;
       font-weight: bold;
+      font-size: 1.1rem;
+      opacity: 0.9;
     }
   </style>
 </head>
@@ -164,79 +110,74 @@
 <body>
   <div class="stars" id="stars"></div>
 
-  <div class="container" id="card">
+  <div class="container">
     <h1>🌌 Galaxy Switch</h1>
 
-    <div class="display" id="display">••••</div>
-
-    <div class="keypad" id="keypad"></div>
+    <!-- 🔐 Passcode Input -->
+    <input type="password" id="passcode" placeholder="Enter Passcode">
 
     <button id="toggleBtn" disabled>Turn ON</button>
     <div id="status">🔒 Locked</div>
   </div>
 
   <script>
-    /* 🌠 Stars */
-    const stars = document.getElementById('stars');
-    for (let i = 0; i < 100; i++) {
-      const s = document.createElement('div');
-      s.className = 'star';
-      s.style.left = Math.random() * innerWidth + 'px';
-      s.style.top = Math.random() * innerHeight + 'px';
-      s.style.animationDuration = 10 + Math.random() * 20 + 's';
-      stars.appendChild(s);
+    // 🔹 Generate moving stars
+    const starsContainer = document.getElementById('stars');
+    const numStars = 100;
+    for (let i = 0; i < numStars; i++) {
+      const star = document.createElement('div');
+      star.classList.add('star');
+      star.style.top = Math.random() * window.innerHeight + 'px';
+      star.style.left = Math.random() * window.innerWidth + 'px';
+      star.style.width = star.style.height = Math.random() * 2 + 1 + 'px';
+      star.style.animationDuration = 10 + Math.random() * 20 + 's';
+      starsContainer.appendChild(star);
     }
 
-    /* 🔢 Keypad Logic */
+    // 🔐 Passcode Logic
     const PASSCODE = "6767";
-    let entered = "";
-    const display = document.getElementById('display');
-    const keypad = document.getElementById('keypad');
+    const passInput = document.getElementById('passcode');
     const btn = document.getElementById('toggleBtn');
     const status = document.getElementById('status');
-    const card = document.getElementById('card');
 
-    const keys = [...Array(10).keys(), "←"];
-    keys.forEach(k => {
-      const b = document.createElement('button');
-      b.textContent = k;
-      b.onclick = () => pressKey(k);
-      keypad.appendChild(b);
+    passInput.addEventListener('input', () => {
+      if (passInput.value === PASSCODE) {
+        btn.disabled = false;
+        btn.classList.add('enabled');
+        status.textContent = '🔓 Unlocked';
+      } else {
+        btn.disabled = true;
+        btn.classList.remove('enabled');
+        status.textContent = '🔒 Locked';
+      }
     });
 
-    function pressKey(key) {
-      if (key === "←") entered = entered.slice(0, -1);
-      else if (entered.length < 4) entered += key;
-
-      display.textContent = "•".repeat(entered.length).padEnd(4, "•");
-
-      if (entered === PASSCODE) unlock();
-    }
-
-    function unlock() {
-      btn.disabled = false;
-      btn.classList.add('enabled');
-      card.classList.add('unlocked');
-      status.textContent = "🔓 Unlocked";
-
-      const ripple = document.createElement('div');
-      ripple.className = 'ripple';
-      ripple.style.left = '50%';
-      ripple.style.top = '50%';
-      ripple.style.transform = 'translate(-50%, -50%)';
-      card.appendChild(ripple);
-      setTimeout(() => ripple.remove(), 1200);
-    }
-
-    /* 🔘 Toggle */
+    // 🔒 Toggle logic
     let isOn = false;
-    btn.onclick = () => {
-      isOn = !isOn;
-      btn.textContent = isOn ? "Turn OFF" : "Turn ON";
-      status.textContent = isOn ? "ON 🌠" : "OFF 🌑";
-      btn.classList.toggle('on', isOn);
-      btn.classList.toggle('off', !isOn);
-    };
+
+    btn.addEventListener('click', () => {
+      const newState = !isOn;
+
+      fetch('/toggle', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ state: newState })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          isOn = newState;
+          btn.textContent = isOn ? 'Turn OFF' : 'Turn ON';
+          status.textContent = `Switch is now ${isOn ? 'ON 🌠' : 'OFF 🌑'}`;
+        } else {
+          status.textContent = `Error: ${data.error}`;
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        status.textContent = 'Request failed';
+      });
+    });
   </script>
 </body>
 </html>
