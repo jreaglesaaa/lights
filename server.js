@@ -20,9 +20,15 @@ const tuya = new TuyaContext({
   secretKey: client_secret
 });
 
-// Endpoint to toggle switch
+// Endpoint to toggle an individual switch
 app.post('/toggle', async (req, res) => {
-  const { state } = req.body; // expects { state: true/false }
+  const { switch: switchNum, state } = req.body;
+  // expects { switch: 1 or 2, state: true/false }
+
+  if (![1, 2].includes(switchNum)) {
+    return res.status(400).json({ error: 'switch must be 1 or 2' });
+  }
+
   if (typeof state !== 'boolean') {
     return res.status(400).json({ error: 'state must be true or false' });
   }
@@ -30,8 +36,10 @@ app.post('/toggle', async (req, res) => {
   try {
     const body = {
       commands: [
-        { code: 'switch_1', value: state },
-        { code: 'switch_2', value: state }
+        {
+          code: `switch_${switchNum}`,
+          value: state
+        }
       ]
     };
 
