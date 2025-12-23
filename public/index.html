@@ -6,7 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
-    /* 🌌 Fullscreen galaxy background */
     body {
       margin: 0;
       height: 100vh;
@@ -16,15 +15,12 @@
       align-items: center;
       font-family: 'Arial', sans-serif;
       color: white;
-      position: relative;
       background: #000;
     }
 
-    /* 🌠 Moving stars layer */
     .stars {
       position: absolute;
       inset: 0;
-      background: transparent;
       z-index: 0;
       overflow: hidden;
     }
@@ -44,7 +40,6 @@
       to { transform: translateY(-100vh); }
     }
 
-    /* 🪐 Container Card */
     .container {
       position: relative;
       z-index: 1;
@@ -67,7 +62,7 @@
       padding: 12px;
       width: 100%;
       max-width: 250px;
-      margin-bottom: 15px;
+      margin-bottom: 20px;
       border-radius: 25px;
       border: none;
       text-align: center;
@@ -75,8 +70,8 @@
     }
 
     button {
-      padding: 18px 50px;
-      font-size: 1.4rem;
+      padding: 16px;
+      font-size: 1.2rem;
       cursor: pointer;
       border: none;
       border-radius: 50px;
@@ -87,6 +82,7 @@
       width: 100%;
       max-width: 250px;
       opacity: 0.5;
+      margin-bottom: 15px;
     }
 
     button.enabled {
@@ -99,10 +95,9 @@
     }
 
     #status {
-      margin-top: 20px;
+      margin-top: 15px;
       font-weight: bold;
       font-size: 1.1rem;
-      opacity: 0.9;
     }
   </style>
 </head>
@@ -113,71 +108,76 @@
   <div class="container">
     <h1>🌌 Galaxy Switch</h1>
 
-    <!-- 🔐 Passcode Input -->
     <input type="password" id="passcode" placeholder="Enter Passcode">
 
-    <button id="toggleBtn" disabled>Turn ON</button>
+    <!-- 🔘 TWO SWITCH BUTTONS -->
+    <button id="switch1Btn" disabled>Switch 1: OFF</button>
+    <button id="switch2Btn" disabled>Switch 2: OFF</button>
+
     <div id="status">🔒 Locked</div>
   </div>
 
   <script>
-    // 🔹 Generate moving stars
+    // 🌠 Stars
     const starsContainer = document.getElementById('stars');
-    const numStars = 100;
-    for (let i = 0; i < numStars; i++) {
+    for (let i = 0; i < 100; i++) {
       const star = document.createElement('div');
-      star.classList.add('star');
-      star.style.top = Math.random() * window.innerHeight + 'px';
-      star.style.left = Math.random() * window.innerWidth + 'px';
-      star.style.width = star.style.height = Math.random() * 2 + 1 + 'px';
+      star.className = 'star';
+      star.style.top = Math.random() * innerHeight + 'px';
+      star.style.left = Math.random() * innerWidth + 'px';
       star.style.animationDuration = 10 + Math.random() * 20 + 's';
       starsContainer.appendChild(star);
     }
 
-    // 🔐 Passcode Logic
+    // 🔐 Passcode logic
     const PASSCODE = "6.62607015";
     const passInput = document.getElementById('passcode');
-    const btn = document.getElementById('toggleBtn');
     const status = document.getElementById('status');
+    const btn1 = document.getElementById('switch1Btn');
+    const btn2 = document.getElementById('switch2Btn');
+
+    let switch1On = false;
+    let switch2On = false;
 
     passInput.addEventListener('input', () => {
-      if (passInput.value === PASSCODE) {
-        btn.disabled = false;
-        btn.classList.add('enabled');
-        status.textContent = '🔓 Unlocked';
-      } else {
-        btn.disabled = true;
-        btn.classList.remove('enabled');
-        status.textContent = '🔒 Locked';
-      }
+      const unlocked = passInput.value === PASSCODE;
+      [btn1, btn2].forEach(btn => {
+        btn.disabled = !unlocked;
+        btn.classList.toggle('enabled', unlocked);
+      });
+      status.textContent = unlocked ? '🔓 Unlocked' : '🔒 Locked';
     });
 
-    // 🔒 Toggle logic
-    let isOn = false;
-
-    btn.addEventListener('click', () => {
-      const newState = !isOn;
+    function toggleSwitch(switchNum) {
+      const currentState = switchNum === 1 ? switch1On : switch2On;
+      const newState = !currentState;
 
       fetch('/toggle', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ state: newState })
+        body: JSON.stringify({ switch: switchNum, state: newState })
       })
       .then(res => res.json())
       .then(data => {
-        if (data.success) {
-          isOn = newState;
-          btn.textContent = isOn ? 'Turn OFF' : 'Turn ON';
-          status.textContent = `Switch is now ${isOn ? 'ON 🌠' : 'OFF 🌑'}`;
+        if (!data.success) throw new Error(data.error);
+
+        if (switchNum === 1) {
+          switch1On = newState;
+          btn1.textContent = `Switch 1: ${newState ? 'ON 🌠' : 'OFF 🌑'}`;
         } else {
-          status.textContent = `Error: ${data.error}`;
+          switch2On = newState;
+          btn2.textContent = `Switch 2: ${newState ? 'ON 🌠' : 'OFF 🌑'}`;
         }
+
+        status.textContent = `Switch ${switchNum} is now ${newState ? 'ON' : 'OFF'}`;
       })
-      .catch(err => {
-        console.error(err);
-        status.textContent = 'Request failed';
+      .catch(() => {
+        status.textContent = '⚠️ Request failed';
       });
-    });
+    }
+
+    btn1.addEventListener('click', () => toggleSwitch(1));
+    btn2.addEventListener('click', () => toggleSwitch(2));
   </script>
 </body>
 </html>
