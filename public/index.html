@@ -1,183 +1,190 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Galaxy Switch 🌌</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <title>Milky Way Control</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <style>
+    * {
+      box-sizing: border-box;
+      font-family: "Segoe UI", system-ui, sans-serif;
+    }
+
     body {
       margin: 0;
       height: 100vh;
-      overflow: hidden;
+      background: radial-gradient(circle at top, #1b0033, #000);
       display: flex;
       justify-content: center;
       align-items: center;
-      font-family: 'Arial', sans-serif;
       color: white;
-      background: #000;
     }
 
-    .stars {
-      position: absolute;
-      inset: 0;
-      z-index: 0;
-      overflow: hidden;
-    }
-
-    .star {
-      position: absolute;
-      width: 2px;
-      height: 2px;
-      background: white;
-      border-radius: 50%;
-      opacity: 0.8;
-      animation: moveStars linear infinite;
-    }
-
-    @keyframes moveStars {
-      from { transform: translateY(0); }
-      to { transform: translateY(-100vh); }
-    }
-
-    .container {
-      position: relative;
-      z-index: 1;
-      background: rgba(20, 0, 40, 0.6);
-      padding: 40px 30px;
-      border-radius: 25px;
-      box-shadow: 0 0 30px rgba(127, 0, 255, 0.5);
-      width: 90%;
-      max-width: 400px;
+    .panel {
+      width: 340px;
+      background: rgba(15, 10, 30, 0.9);
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 0 40px rgba(120, 0, 255, 0.6);
       text-align: center;
     }
 
-    h1 {
+    .panel h1 {
+      margin: 0 0 10px;
+      font-size: 1.6rem;
+      letter-spacing: 1px;
+    }
+
+    .subtitle {
+      font-size: 0.9rem;
+      opacity: 0.7;
       margin-bottom: 25px;
-      letter-spacing: 2px;
-      font-size: 1.8rem;
+    }
+
+    .lock {
+      font-size: 3rem;
+      margin-bottom: 15px;
     }
 
     input {
-      padding: 12px;
       width: 100%;
-      max-width: 250px;
-      margin-bottom: 20px;
-      border-radius: 25px;
+      padding: 14px;
+      border-radius: 12px;
       border: none;
+      outline: none;
       text-align: center;
       font-size: 1.1rem;
+      margin-bottom: 20px;
+    }
+
+    .switch-card {
+      background: linear-gradient(135deg, #2b0055, #120020);
+      border-radius: 16px;
+      padding: 25px;
+      margin-bottom: 20px;
+      box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.05);
+    }
+
+    .switch-name {
+      font-size: 1.3rem;
+      margin-bottom: 10px;
+    }
+
+    .switch-status {
+      font-size: 0.95rem;
+      opacity: 0.7;
+      margin-bottom: 20px;
     }
 
     button {
-      padding: 16px;
-      font-size: 1.2rem;
-      cursor: pointer;
-      border: none;
-      border-radius: 50px;
-      background: linear-gradient(90deg, #7f00ff, #00c6ff);
-      color: white;
-      box-shadow: 0 0 20px rgba(127, 0, 255, 0.5);
-      transition: transform 0.2s, box-shadow 0.2s;
       width: 100%;
-      max-width: 250px;
-      opacity: 0.5;
-      margin-bottom: 15px;
+      padding: 16px;
+      border-radius: 50px;
+      border: none;
+      font-size: 1.1rem;
+      cursor: pointer;
+      background: linear-gradient(90deg, #7f00ff, #00d4ff);
+      color: white;
+      opacity: 0.4;
+      transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
     }
 
     button.enabled {
       opacity: 1;
+      box-shadow: 0 0 25px rgba(0, 200, 255, 0.6);
     }
 
-    button:hover.enabled {
+    button.enabled:hover {
       transform: scale(1.05);
-      box-shadow: 0 0 30px rgba(0, 198, 255, 0.6);
     }
 
-    #status {
-      margin-top: 15px;
-      font-weight: bold;
-      font-size: 1.1rem;
+    .footer-status {
+      margin-top: 10px;
+      font-size: 0.95rem;
+      opacity: 0.85;
     }
   </style>
 </head>
 
 <body>
-  <div class="stars" id="stars"></div>
+  <div class="panel">
+    <div class="lock" id="lockIcon">🔒</div>
+    <h1>Milky Way</h1>
+    <div class="subtitle">Dual Power Control</div>
 
-  <div class="container">
-    <h1>🌌 Galaxy Switch</h1>
+    <input
+      type="password"
+      id="passcode"
+      placeholder="Enter Access Code"
+    />
 
-    <input type="password" id="passcode" placeholder="Enter Passcode">
+    <div class="switch-card">
+      <div class="switch-name">🌌 Milky Way</div>
+      <div class="switch-status" id="switchStatus">
+        Status: OFF
+      </div>
 
-    <!-- 🔘 TWO SWITCH BUTTONS -->
-    <button id="switch1Btn" disabled>Switch 1: OFF</button>
-    <button id="switch2Btn" disabled>Switch 2: OFF</button>
+      <button id="milkyWayBtn" disabled>
+        Activate
+      </button>
+    </div>
 
-    <div id="status">🔒 Locked</div>
+    <div class="footer-status" id="statusText">
+      System Locked
+    </div>
   </div>
 
   <script>
-    // 🌠 Stars
-    const starsContainer = document.getElementById('stars');
-    for (let i = 0; i < 100; i++) {
-      const star = document.createElement('div');
-      star.className = 'star';
-      star.style.top = Math.random() * innerHeight + 'px';
-      star.style.left = Math.random() * innerWidth + 'px';
-      star.style.animationDuration = 10 + Math.random() * 20 + 's';
-      starsContainer.appendChild(star);
-    }
-
-    // 🔐 Passcode logic
     const PASSCODE = "6767";
-    const passInput = document.getElementById('passcode');
-    const status = document.getElementById('status');
-    const btn1 = document.getElementById('switch1Btn');
-    const btn2 = document.getElementById('switch2Btn');
+
+    const passInput = document.getElementById("passcode");
+    const btn = document.getElementById("milkyWayBtn");
+    const statusText = document.getElementById("statusText");
+    const switchStatus = document.getElementById("switchStatus");
+    const lockIcon = document.getElementById("lockIcon");
 
     let switch1On = false;
     let switch2On = false;
 
-    passInput.addEventListener('input', () => {
+    passInput.addEventListener("input", () => {
       const unlocked = passInput.value === PASSCODE;
-      [btn1, btn2].forEach(btn => {
-        btn.disabled = !unlocked;
-        btn.classList.toggle('enabled', unlocked);
-      });
-      status.textContent = unlocked ? '🔓 Unlocked' : '🔒 Locked';
+
+      btn.disabled = !unlocked;
+      btn.classList.toggle("enabled", unlocked);
+
+      lockIcon.textContent = unlocked ? "🔓" : "🔒";
+      statusText.textContent = unlocked
+        ? "Access Granted"
+        : "System Locked";
     });
 
-    function toggleSwitch(switchNum) {
-      const currentState = switchNum === 1 ? switch1On : switch2On;
-      const newState = !currentState;
-
-      fetch('/toggle', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ switch: switchNum, state: newState })
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (!data.success) throw new Error(data.error);
-
-        if (switchNum === 1) {
-          switch1On = newState;
-          btn1.textContent = `USB A: ${newState ? 'ON 🌠' : 'OFF 🌑'}`;
-        } else {
-          switch2On = newState;
-          btn2.textContent = `USB C: ${newState ? 'ON 🌠' : 'OFF 🌑'}`;
-        }
-
-        status.textContent = `Switch ${switchNum} is now ${newState ? 'ON' : 'OFF'}`;
-      })
-      .catch(() => {
-        status.textContent = '⚠️ Request failed';
-      });
+    function activateMilkyWay() {
+      Promise.all([
+        fetch("/toggle", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ switch: 1, state: true })
+        }),
+        fetch("/toggle", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ switch: 2, state: true })
+        })
+      ])
+        .then(() => {
+          switch1On = true;
+          switch2On = true;
+          switchStatus.textContent = "Status: ON ✨";
+          btn.textContent = "Active";
+          statusText.textContent = "Milky Way Online";
+        })
+        .catch(() => {
+          statusText.textContent = "⚠️ Activation Failed";
+        });
     }
 
-    btn1.addEventListener('click', () => toggleSwitch(1));
-    btn2.addEventListener('click', () => toggleSwitch(2));
+    btn.addEventListener("click", activateMilkyWay);
   </script>
 </body>
 </html>
