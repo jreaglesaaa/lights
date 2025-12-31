@@ -7,7 +7,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
   <style>
-    /* 🌌 RESET */
     html, body {
       margin: 0;
       padding: 0;
@@ -19,32 +18,42 @@
       background: black;
     }
 
-    /* 🌠 GALAXY BACKGROUND */
+    /* ✅ Center UI on mobile & desktop */
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding:
+        env(safe-area-inset-top)
+        env(safe-area-inset-right)
+        env(safe-area-inset-bottom)
+        env(safe-area-inset-left);
+    }
+
+    /* 🌌 Galaxy glow */
     body::before {
       content: "";
       position: fixed;
       inset: 0;
       background:
-        radial-gradient(circle at 20% 30%, rgba(140, 0, 255, 0.35), transparent 40%),
-        radial-gradient(circle at 80% 60%, rgba(0, 180, 255, 0.35), transparent 45%),
-        radial-gradient(circle at 50% 90%, rgba(255, 0, 150, 0.25), transparent 50%),
+        radial-gradient(circle at 30% 20%, rgba(140, 0, 255, 0.35), transparent 40%),
+        radial-gradient(circle at 70% 60%, rgba(0, 180, 255, 0.35), transparent 45%),
         #000;
-      animation: drift 30s infinite alternate ease-in-out;
-      z-index: -1;
+      z-index: -3;
     }
 
-    @keyframes drift {
-      from { transform: scale(1); }
-      to { transform: scale(1.15); }
+    /* ✨ Star field */
+    canvas {
+      position: fixed;
+      inset: 0;
+      z-index: -2;
     }
 
-    /* 🪐 PANEL */
+    /* 🪐 Control panel */
     .panel {
-      width: 92%;
-      max-width: 380px;
-      margin: auto;
-      padding: 35px 28px;
-      border-radius: 26px;
+      width: min(92%, 380px);
+      padding: 36px 28px;
+      border-radius: 28px;
       background: rgba(10, 5, 25, 0.92);
       box-shadow:
         0 0 60px rgba(120, 0, 255, 0.8),
@@ -59,66 +68,110 @@
     }
 
     .subtitle {
-      margin-top: 6px;
-      margin-bottom: 35px;
+      margin: 6px 0 28px;
       opacity: 0.7;
       font-size: 0.95rem;
     }
 
-    /* 🔘 BUTTON */
+    /* 🔘 Power button */
     .power-btn {
-      width: 140px;
-      height: 140px;
-      margin: 0 auto 20px;
+      width: 150px;
+      height: 150px;
       border-radius: 50%;
       border: none;
-      font-size: 1.2rem;
+      font-size: 1.3rem;
       font-weight: 600;
       color: white;
       background: radial-gradient(circle at top, #444, #111);
-      box-shadow:
-        0 0 25px rgba(255,255,255,0.15),
-        inset 0 0 20px rgba(0,0,0,0.8);
+      box-shadow: inset 0 0 25px rgba(0,0,0,0.8);
       cursor: pointer;
-      transition: all 0.35s ease;
+      transition: 0.35s ease;
     }
 
     .power-btn.on {
-      background: radial-gradient(circle at top, #7f00ff, #00c8ff);
+      background: radial-gradient(circle at top, #7f00ff, #00d4ff);
       box-shadow:
-        0 0 40px rgba(0, 200, 255, 0.9),
+        0 0 45px rgba(0,200,255,0.9),
         inset 0 0 25px rgba(255,255,255,0.3);
-      transform: scale(1.05);
+      transform: scale(1.07);
     }
 
     .status {
-      font-size: 1rem;
-      opacity: 0.9;
-      margin-top: 10px;
+      margin-top: 18px;
+      font-size: 1.05rem;
+      font-weight: 500;
     }
 
+    .status.on { color: #7ffcff; }
+    .status.off { color: #aaa; }
+
     .footer {
-      margin-top: 25px;
+      margin-top: 22px;
       font-size: 0.9rem;
-      opacity: 0.7;
+      opacity: 0.75;
     }
   </style>
 </head>
 
 <body>
+
+  <canvas id="stars"></canvas>
+
   <div class="panel">
     <h1>🌌 Galaxy</h1>
-    <div class="subtitle">Milky Way Control</div>
+    <div class="subtitle">Milky Way System</div>
 
     <button class="power-btn" id="powerBtn">OFF</button>
-    <div class="status" id="statusText">System Idle</div>
 
+    <div class="status off" id="switchStatus">Switch Status: OFF</div>
     <div class="footer" id="systemStatus">✨ Ready</div>
   </div>
 
   <script>
+    /* ✨ STAR PARTICLES */
+    const canvas = document.getElementById("stars");
+    const ctx = canvas.getContext("2d");
+    let stars = [];
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+
+    function createStars(count = 140) {
+      stars = [];
+      for (let i = 0; i < count; i++) {
+        stars.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          r: Math.random() * 1.6 + 0.4,
+          v: Math.random() * 0.35 + 0.1
+        });
+      }
+    }
+    createStars();
+
+    function animateStars() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "white";
+
+      stars.forEach(s => {
+        s.y += s.v;
+        if (s.y > canvas.height) s.y = 0;
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      requestAnimationFrame(animateStars);
+    }
+    animateStars();
+
+    /* 🔘 TOGGLE LOGIC */
     const powerBtn = document.getElementById("powerBtn");
-    const statusText = document.getElementById("statusText");
+    const switchStatus = document.getElementById("switchStatus");
     const systemStatus = document.getElementById("systemStatus");
 
     let milkyWayOn = false;
@@ -126,11 +179,18 @@
     powerBtn.addEventListener("click", () => {
       milkyWayOn = !milkyWayOn;
 
+      // 📳 Haptic feedback
+      if (navigator.vibrate) {
+        navigator.vibrate(milkyWayOn ? 40 : 25);
+      }
+
       powerBtn.classList.toggle("on", milkyWayOn);
       powerBtn.textContent = milkyWayOn ? "ON" : "OFF";
-      statusText.textContent = milkyWayOn ? "Milky Way Active ✨" : "Milky Way Offline 🌑";
 
-      // 🔁 Toggle BOTH switches (same logic as before)
+      switchStatus.textContent = `Switch Status: ${milkyWayOn ? "ON" : "OFF"}`;
+      switchStatus.className = `status ${milkyWayOn ? "on" : "off"}`;
+
+      // 🔁 Toggle BOTH switches
       Promise.all([
         fetch("/toggle", {
           method: "POST",
@@ -149,5 +209,6 @@
       });
     });
   </script>
+
 </body>
 </html>
