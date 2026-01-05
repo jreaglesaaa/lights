@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Galaxy Control</title>
+  <title>Conor Control</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
@@ -15,14 +15,19 @@
       overflow: hidden;
       font-family: system-ui, -apple-system, sans-serif;
       color: white;
-      background: black;
     }
 
-    /* ✅ Center UI on mobile & desktop */
+    /* 📸 FULLSCREEN PHOTO BACKGROUND */
     body {
       display: flex;
       justify-content: center;
       align-items: center;
+      background:
+        linear-gradient(
+          rgba(0,0,0,0.55),
+          rgba(0,0,0,0.55)
+        ),
+        url("conor.jpg") center / cover no-repeat;
       padding:
         env(safe-area-inset-top)
         env(safe-area-inset-right)
@@ -30,50 +35,32 @@
         env(safe-area-inset-left);
     }
 
-    /* 🌌 Galaxy glow */
-    body::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      background:
-        radial-gradient(circle at 30% 20%, rgba(140, 0, 255, 0.35), transparent 40%),
-        radial-gradient(circle at 70% 60%, rgba(0, 180, 255, 0.35), transparent 45%),
-        #000;
-      z-index: -3;
-    }
-
-    /* ✨ Star field */
-    canvas {
-      position: fixed;
-      inset: 0;
-      z-index: -2;
-    }
-
-    /* 🪐 Control panel */
+    /* 🧊 GLASS PANEL */
     .panel {
       width: min(92%, 380px);
       padding: 36px 28px;
       border-radius: 28px;
-      background: rgba(10, 5, 25, 0.92);
+      background: rgba(20, 20, 20, 0.65);
+      backdrop-filter: blur(14px);
       box-shadow:
-        0 0 60px rgba(120, 0, 255, 0.8),
-        inset 0 0 20px rgba(255,255,255,0.05);
+        0 20px 60px rgba(0,0,0,0.8),
+        inset 0 0 0 1px rgba(255,255,255,0.08);
       text-align: center;
     }
 
     h1 {
       margin: 0;
       font-size: 2rem;
-      letter-spacing: 1.5px;
+      letter-spacing: 1px;
     }
 
     .subtitle {
       margin: 6px 0 28px;
-      opacity: 0.7;
+      opacity: 0.75;
       font-size: 0.95rem;
     }
 
-    /* 🔘 Power button */
+    /* 🔘 POWER BUTTON */
     .power-btn {
       width: 150px;
       height: 150px;
@@ -89,10 +76,10 @@
     }
 
     .power-btn.on {
-      background: radial-gradient(circle at top, #7f00ff, #00d4ff);
+      background: radial-gradient(circle at top, #00ff88, #007744);
       box-shadow:
-        0 0 45px rgba(0,200,255,0.9),
-        inset 0 0 25px rgba(255,255,255,0.3);
+        0 0 35px rgba(0,255,150,0.8),
+        inset 0 0 25px rgba(255,255,255,0.25);
       transform: scale(1.07);
     }
 
@@ -102,8 +89,8 @@
       font-weight: 500;
     }
 
-    .status.on { color: #7ffcff; }
-    .status.off { color: #aaa; }
+    .status.on { color: #6cffc3; }
+    .status.off { color: #ccc; }
 
     .footer {
       margin-top: 22px;
@@ -115,97 +102,54 @@
 
 <body>
 
-  <canvas id="stars"></canvas>
-
   <div class="panel">
-    <h1>🌌 Galaxy</h1>
-    <div class="subtitle">Milky Way System</div>
+    <h1>Conor</h1>
+    <div class="subtitle">Control System</div>
 
     <button class="power-btn" id="powerBtn">OFF</button>
 
     <div class="status off" id="switchStatus">Switch Status: OFF</div>
-    <div class="footer" id="systemStatus">✨ Ready</div>
+    <div class="footer" id="systemStatus">Ready</div>
   </div>
 
   <script>
-    /* ✨ STAR PARTICLES */
-    const canvas = document.getElementById("stars");
-    const ctx = canvas.getContext("2d");
-    let stars = [];
-
-    function resizeCanvas() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    }
-    window.addEventListener("resize", resizeCanvas);
-    resizeCanvas();
-
-    function createStars(count = 140) {
-      stars = [];
-      for (let i = 0; i < count; i++) {
-        stars.push({
-          x: Math.random() * canvas.width,
-          y: Math.random() * canvas.height,
-          r: Math.random() * 1.6 + 0.4,
-          v: Math.random() * 0.35 + 0.1
-        });
-      }
-    }
-    createStars();
-
-    function animateStars() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = "white";
-
-      stars.forEach(s => {
-        s.y += s.v;
-        if (s.y > canvas.height) s.y = 0;
-        ctx.beginPath();
-        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-        ctx.fill();
-      });
-
-      requestAnimationFrame(animateStars);
-    }
-    animateStars();
-
-    /* 🔘 TOGGLE LOGIC */
     const powerBtn = document.getElementById("powerBtn");
     const switchStatus = document.getElementById("switchStatus");
     const systemStatus = document.getElementById("systemStatus");
 
-    let milkyWayOn = false;
+    let systemOn = false;
 
     powerBtn.addEventListener("click", () => {
-      milkyWayOn = !milkyWayOn;
+      systemOn = !systemOn;
 
       // 📳 Haptic feedback
       if (navigator.vibrate) {
-        navigator.vibrate(milkyWayOn ? 40 : 25);
+        navigator.vibrate(systemOn ? 40 : 25);
       }
 
-      powerBtn.classList.toggle("on", milkyWayOn);
-      powerBtn.textContent = milkyWayOn ? "ON" : "OFF";
+      powerBtn.classList.toggle("on", systemOn);
+      powerBtn.textContent = systemOn ? "ON" : "OFF";
 
-      switchStatus.textContent = `Switch Status: ${milkyWayOn ? "ON" : "OFF"}`;
-      switchStatus.className = `status ${milkyWayOn ? "on" : "off"}`;
+      switchStatus.textContent = `Switch Status: ${systemOn ? "ON" : "OFF"}`;
+      switchStatus.className = `status ${systemOn ? "on" : "off"}`;
 
-      // 🔁 Toggle BOTH switches
       Promise.all([
         fetch("/toggle", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ switch: 1, state: milkyWayOn })
+          body: JSON.stringify({ switch: 1, state: systemOn })
         }),
         fetch("/toggle", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ switch: 2, state: milkyWayOn })
+          body: JSON.stringify({ switch: 2, state: systemOn })
         })
-      ]).then(() => {
-        systemStatus.textContent = "🚀 Command Sent";
-      }).catch(() => {
-        systemStatus.textContent = "⚠️ Connection Error";
+      ])
+      .then(() => {
+        systemStatus.textContent = "Command Sent";
+      })
+      .catch(() => {
+        systemStatus.textContent = "Connection Error";
       });
     });
   </script>
