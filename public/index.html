@@ -4,11 +4,9 @@
   <meta charset="UTF-8" />
   <title>Conor Control</title>
 
-  <!-- ✅ Fullscreen iOS fix -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
   <style>
-    /* 🔒 HARD RESET */
     * {
       box-sizing: border-box;
       -webkit-tap-highlight-color: transparent;
@@ -25,24 +23,78 @@
       color: white;
     }
 
-    /* 📸 FULLSCREEN PHOTO BACKGROUND (NO WHITE BARS) */
     body {
       position: fixed;
       inset: 0;
-
       display: flex;
       justify-content: center;
       align-items: center;
-
       background:
-        linear-gradient(
-          rgba(0,0,0,0.55),
-          rgba(0,0,0,0.55)
-        ),
+        linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)),
         url("conor.jpg") center / cover no-repeat;
     }
 
-    /* 🧊 GLASS CONTROL PANEL */
+    /* 🔒 LOCK SCREEN */
+    .lock-screen {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(20px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10;
+      transition: opacity 0.4s ease;
+    }
+
+    .lock-panel {
+      width: min(90%, 320px);
+      padding: 32px;
+      border-radius: 24px;
+      background: rgba(20,20,20,0.75);
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.9);
+    }
+
+    .lock-panel h2 {
+      margin: 0 0 18px;
+      font-size: 1.6rem;
+    }
+
+    .lock-panel input {
+      width: 100%;
+      padding: 14px;
+      font-size: 1.2rem;
+      text-align: center;
+      border-radius: 14px;
+      border: none;
+      outline: none;
+      background: #111;
+      color: white;
+      letter-spacing: 6px;
+    }
+
+    .lock-panel button {
+      margin-top: 18px;
+      width: 100%;
+      padding: 14px;
+      font-size: 1rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 14px;
+      background: #00ff88;
+      color: black;
+      cursor: pointer;
+    }
+
+    .lock-error {
+      margin-top: 10px;
+      font-size: 0.9rem;
+      color: #ff6b6b;
+      height: 1em;
+    }
+
+    /* 🧊 CONTROL PANEL */
     .panel {
       width: min(92%, 380px);
       padding: 36px 28px;
@@ -67,7 +119,6 @@
       opacity: 0.75;
     }
 
-    /* 🔘 POWER BUTTON */
     .power-btn {
       width: 150px;
       height: 150px;
@@ -90,7 +141,6 @@
       transform: scale(1.07);
     }
 
-    /* 📊 STATUS TEXT */
     .status {
       margin-top: 18px;
       font-size: 1.05rem;
@@ -110,6 +160,17 @@
 
 <body>
 
+  <!-- 🔒 PASSCODE OVERLAY -->
+  <div class="lock-screen" id="lockScreen">
+    <div class="lock-panel">
+      <h2>Enter Passcode</h2>
+      <input type="password" id="passcodeInput" maxlength="6" inputmode="numeric" />
+      <button id="unlockBtn">Unlock</button>
+      <div class="lock-error" id="lockError"></div>
+    </div>
+  </div>
+
+  <!-- 🧊 CONTROL PANEL -->
   <div class="panel">
     <h1>Conor</h1>
     <div class="subtitle">Control System</div>
@@ -121,6 +182,32 @@
   </div>
 
   <script>
+    /* 🔑 PASSCODE CONFIG */
+    const PASSCODE = "AVA"; // ← CHANGE THIS
+
+    const lockScreen = document.getElementById("lockScreen");
+    const passcodeInput = document.getElementById("passcodeInput");
+    const unlockBtn = document.getElementById("unlockBtn");
+    const lockError = document.getElementById("lockError");
+
+    if (localStorage.getItem("unlocked") === "true") {
+      lockScreen.style.display = "none";
+    }
+
+    unlockBtn.onclick = () => {
+      if (passcodeInput.value === PASSCODE) {
+        localStorage.setItem("unlocked", "true");
+        lockScreen.style.opacity = "0";
+        setTimeout(() => lockScreen.style.display = "none", 400);
+        if (navigator.vibrate) navigator.vibrate(60);
+      } else {
+        lockError.textContent = "Incorrect passcode";
+        passcodeInput.value = "";
+        if (navigator.vibrate) navigator.vibrate([30, 40, 30]);
+      }
+    };
+
+    /* 🔘 POWER BUTTON */
     const powerBtn = document.getElementById("powerBtn");
     const switchStatus = document.getElementById("switchStatus");
     const systemStatus = document.getElementById("systemStatus");
@@ -130,10 +217,7 @@
     powerBtn.addEventListener("click", () => {
       systemOn = !systemOn;
 
-      // 📳 Haptic feedback
-      if (navigator.vibrate) {
-        navigator.vibrate(systemOn ? 40 : 25);
-      }
+      if (navigator.vibrate) navigator.vibrate(systemOn ? 40 : 25);
 
       powerBtn.classList.toggle("on", systemOn);
       powerBtn.textContent = systemOn ? "ON" : "OFF";
@@ -153,12 +237,8 @@
           body: JSON.stringify({ switch: 2, state: systemOn })
         })
       ])
-      .then(() => {
-        systemStatus.textContent = "Command Sent";
-      })
-      .catch(() => {
-        systemStatus.textContent = "Connection Error";
-      });
+      .then(() => systemStatus.textContent = "Command Sent")
+      .catch(() => systemStatus.textContent = "Connection Error");
     });
   </script>
 
