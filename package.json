@@ -2,6 +2,13 @@
   "dependencies": {
     "@tuya/tuya-connector-nodejs": "^2.1.2",
     "body-parser": "^2.2.1",
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "tplink-smarthome-api": "^4.0.0"
+  },
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": "22.x"
   }
 }
