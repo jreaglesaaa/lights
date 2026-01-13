@@ -1,14 +1,22 @@
 {
-  "dependencies": {
-    "@tuya/tuya-connector-nodejs": "^2.1.2",
-    "body-parser": "^2.2.1",
-    "express": "^5.2.1",
-    "tplink-smarthome-api": "^4.0.0"
-  },
+  "name": "toggle",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
   "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js"
   },
-  "engines": {
-    "node": "22.x"
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@tuya/tuya-connector-nodejs": "^2.1.2",
+    "axios": "^1.13.2",
+    "body-parser": "^2.2.2",
+    "express": "^5.2.1",
+    "tplink-smarthome-api": "^5.0.0"
   }
 }
+
