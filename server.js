@@ -1,13 +1,14 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const { TuyaContext } = require('@tuya/tuya-connector-nodejs');
-const { Client } = require('tplink-smarthome-api'); // ✅ Add Kasa client
+const { Client } = require('tplink-smarthome-api');
 
 // ===== CONFIG =====
 const client_id     = '95gk8g3nekeu87nney58';
 const client_secret = 'db68aff004494229be673342ceaf0ed7';
 const baseUrl       = 'https://openapi.tuyaus.com';
 const device_id     = 'eb623898baadaac34bloq9';
+const CHRISTMAS_TREE_IP = '192.168.1.181';
 // ==================
 
 const app = express();
@@ -20,11 +21,9 @@ const tuya = new TuyaContext({
   secretKey: client_secret
 });
 
-// ✅ Kasa client
 const kasaClient = new Client();
-const CHRISTMAS_TREE_IP = '192.168.1.181';
 
-// Endpoint to toggle an individual switch (Tuya + Kasa)
+// Endpoint to toggle an individual switch
 app.post('/toggle', async (req, res) => {
   const { switch: switchNum, state } = req.body;
 
@@ -38,11 +37,7 @@ app.post('/toggle', async (req, res) => {
 
   try {
     // ---- Tuya command ----
-    const body = {
-      commands: [
-        { code: `switch_${switchNum}`, value: state }
-      ]
-    };
+    const body = { commands: [{ code: `switch_${switchNum}`, value: state }] };
     await tuya.request({
       path: `/v1.0/iot-03/devices/${device_id}/commands`,
       method: 'POST',
@@ -61,6 +56,4 @@ app.post('/toggle', async (req, res) => {
 });
 
 const PORT = 3000;
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
+app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
