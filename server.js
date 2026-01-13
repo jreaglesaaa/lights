@@ -1,7 +1,7 @@
-// server.js
 const express = require('express');
 const bodyParser = require('body-parser');
 const { TuyaContext } = require('@tuya/tuya-connector-nodejs');
+const { Client } = require('tplink-smarthome-api'); // ✅ Add Kasa client
 
 // ===== CONFIG =====
 const client_id     = '95gk8g3nekeu87nney58';
@@ -12,7 +12,7 @@ const device_id     = 'eb623898baadaac34bloq9';
 
 const app = express();
 app.use(bodyParser.json());
-app.use(express.static('public')); // serve frontend from "public" folder
+app.use(express.static('public')); // serve frontend
 
 const tuya = new TuyaContext({
   baseUrl: baseUrl,
@@ -20,10 +20,13 @@ const tuya = new TuyaContext({
   secretKey: client_secret
 });
 
-// Endpoint to toggle an individual switch
+// ✅ Kasa client
+const kasaClient = new Client();
+const CHRISTMAS_TREE_IP = '192.168.1.181';
+
+// Endpoint to toggle an individual switch (Tuya + Kasa)
 app.post('/toggle', async (req, res) => {
   const { switch: switchNum, state } = req.body;
-  // expects { switch: 1 or 2, state: true/false }
 
   if (![1, 2].includes(switchNum)) {
     return res.status(400).json({ error: 'switch must be 1 or 2' });
@@ -34,29 +37,29 @@ app.post('/toggle', async (req, res) => {
   }
 
   try {
+    // ---- Tuya command ----
     const body = {
       commands: [
-        {
-          code: `switch_${switchNum}`,
-          value: state
-        }
+        { code: `switch_${switchNum}`, value: state }
       ]
     };
-
-    const response = await tuya.request({
+    await tuya.request({
       path: `/v1.0/iot-03/devices/${device_id}/commands`,
       method: 'POST',
       body: body
     });
 
-    res.json({ success: true, response });
+    // ---- Kasa command ----
+    const kasaDevice = await kasaClient.getDevice({ host: CHRISTMAS_TREE_IP });
+    await kasaDevice.setPowerState(state);
+
+    res.json({ success: true });
   } catch (err) {
     console.error('Error sending command:', err);
     res.status(500).json({ success: false, error: err.message });
   }
 });
 
-// Start server
 const PORT = 3000;
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
