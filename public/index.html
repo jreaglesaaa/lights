@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>🎄 Christmas Lights</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
       margin: 0;
@@ -11,7 +12,7 @@
       color: white;
       display: flex;
       height: 100vh;
-      overflow: hidden;
+      overflow-x: hidden; /* Prevent horizontal scroll on mobile */
     }
 
     /* Sidebar */
@@ -24,7 +25,7 @@
       flex-direction: column;
       gap: 15px;
       position: fixed;
-      left: -250px; /* hidden by default */
+      left: -260px; /* Fully hidden offscreen */
       top: 0;
       height: 100%;
       transition: left 0.3s;
@@ -59,6 +60,25 @@
 
     .light-toggle span {
       font-size: 18px;
+    }
+
+    /* Sidebar toggle button inside sidebar container */
+    #sidebarToggle {
+      padding: 12px 20px;
+      font-size: 16px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      background: linear-gradient(135deg, #ff0000, #00ff66);
+      color: black;
+      box-shadow: 0 0 20px #ff0000;
+      transition: 0.2s;
+      margin-bottom: 20px;
+    }
+
+    #sidebarToggle:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 35px #ff0000;
     }
 
     /* Main area */
@@ -98,26 +118,17 @@
       box-shadow: 0 0 50px #ff0000;
     }
 
-    /* Sidebar toggle button */
-    #sidebarToggle {
-      position: fixed;
-      top: 20px;
-      left: 20px;
-      z-index: 1100;
-      padding: 12px 20px;
-      font-size: 16px;
-      border-radius: 10px;
-      border: none;
-      cursor: pointer;
-      background: linear-gradient(135deg, #ff0000, #00ff66);
-      color: black;
-      box-shadow: 0 0 20px #ff0000;
-      transition: 0.2s;
-    }
-
-    #sidebarToggle:hover {
-      transform: scale(1.05);
-      box-shadow: 0 0 35px #ff0000;
+    /* Responsive adjustments */
+    @media(max-width: 500px) {
+      #mainBtn {
+        font-size: 28px;
+        padding: 25px 50px;
+      }
+      .sidebar {
+        width: 200px;
+        left: -210px;
+        padding: 20px 15px;
+      }
     }
   </style>
 </head>
@@ -125,6 +136,7 @@
 
   <!-- Sidebar -->
   <div class="sidebar" id="sidebar">
+    <button id="sidebarToggle" onclick="toggleSidebar()">☰ Switches</button>
     <h2>Switches</h2>
     <div class="light-toggle" onclick="toggleGalaxy()">
       <span>Galaxy (Tuya)</span>
@@ -136,9 +148,6 @@
     </div>
   </div>
 
-  <!-- Sidebar toggle button -->
-  <button id="sidebarToggle" onclick="toggleSidebar()">☰ Switches</button>
-
   <!-- Main area -->
   <div class="main">
     <h1>🎄 Christmas Lights</h1>
@@ -146,7 +155,6 @@
   </div>
 
   <script>
-    // IFTTT and Tuya endpoints
     const KASA_IFTTT_ON = 'https://maker.ifttt.com/trigger/Kasa/with/key/4sN8nwi3EcxSd3Fyymx6z';
     const KASA_IFTTT_OFF = 'https://maker.ifttt.com/trigger/Kasa-off/with/key/4sN8nwi3EcxSd3Fyymx6z';
 
@@ -170,22 +178,13 @@
           body: JSON.stringify({ state: action === 'on' })
         });
         const data = await res.json();
-        if (!data.success) {
-          alert('Tuya error: ' + data.error);
-          return;
-        }
-      } catch (err) {
-        alert('Tuya server error: ' + err.message);
-        return;
-      }
+        if (!data.success) { alert('Tuya error: ' + data.error); return; }
+      } catch (err) { alert('Tuya server error: ' + err.message); return; }
 
       // --- Kasa Music ---
       const kasaUrl = action === 'on' ? KASA_IFTTT_ON : KASA_IFTTT_OFF;
-      try {
-        fetch(kasaUrl).then(r => console.log('Kasa IFTTT triggered:', r.status));
-      } catch (err) {
-        console.error('Kasa IFTTT fetch failed:', err);
-      }
+      try { fetch(kasaUrl).then(r => console.log('Kasa IFTTT triggered:', r.status)); }
+      catch (err) { console.error('Kasa IFTTT fetch failed:', err); }
 
       // Update UI
       allOn = !allOn;
@@ -205,14 +204,8 @@
           body: JSON.stringify({ state: action === 'on' })
         });
         const data = await res.json();
-        if (!data.success) {
-          alert('Tuya error: ' + data.error);
-          return;
-        }
-      } catch (err) {
-        alert('Tuya server error: ' + err.message);
-        return;
-      }
+        if (!data.success) { alert('Tuya error: ' + data.error); return; }
+      } catch (err) { alert('Tuya server error: ' + err.message); return; }
 
       galaxyOn = !galaxyOn;
       document.getElementById('galaxyStatus').textContent = galaxyOn ? 'ON' : 'OFF';
@@ -221,15 +214,12 @@
     function toggleMusic() {
       const action = musicOn ? 'off' : 'on';
       const kasaUrl = action === 'on' ? KASA_IFTTT_ON : KASA_IFTTT_OFF;
-      try {
-        fetch(kasaUrl).then(r => console.log('Kasa IFTTT triggered:', r.status));
-      } catch (err) {
-        console.error('Kasa IFTTT fetch failed:', err);
-      }
+      try { fetch(kasaUrl).then(r => console.log('Kasa IFTTT triggered:', r.status)); }
+      catch (err) { console.error('Kasa IFTTT fetch failed:', err); }
+
       musicOn = !musicOn;
       document.getElementById('musicStatus').textContent = musicOn ? 'ON' : 'OFF';
     }
   </script>
-
 </body>
 </html>
