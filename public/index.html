@@ -1,7 +1,8 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Christmas Power 🎄</title>
+  <meta charset="UTF-8">
+  <title>🎄 Christmas Lights Control</title>
   <style>
     body {
       background: #0b1220;
@@ -10,35 +11,50 @@
       text-align: center;
       padding-top: 60px;
     }
-
+    h1 {
+      font-size: 36px;
+      margin-bottom: 40px;
+    }
     button {
       font-size: 22px;
-      padding: 18px 40px;
-      border-radius: 14px;
+      padding: 18px 50px;
+      margin: 15px;
+      border-radius: 12px;
       border: none;
       cursor: pointer;
-      background: linear-gradient(135deg, red, green);
+      background: linear-gradient(135deg, #ff0000, #00ff66);
+      color: black;
+      transition: transform 0.1s;
+    }
+    button:hover {
+      transform: scale(1.05);
     }
   </style>
 </head>
 <body>
 
-<h1>🎄 Christmas Power 🎄</h1>
+<h1>🎄 Christmas Lights Control 🎄</h1>
 
-<button onclick="toggleAll(true)">ALL ON</button>
-<br><br>
-<button onclick="toggleAll(false)">ALL OFF</button>
+<button onclick="toggle('on')">ALL ON</button>
+<button onclick="toggle('off')">ALL OFF</button>
 
 <script>
-async function toggleAll(state) {
-  const res = await fetch('/toggle-all', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ state })
-  });
-
-  const data = await res.json();
-  if (!data.success) alert(data.error);
+async function toggle(action) {
+  try {
+    const res = await fetch('/webhook', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action })
+    });
+    const data = await res.json();
+    if (!data.success) {
+      alert('Error: ' + data.error);
+    } else {
+      console.log('Success:', action);
+    }
+  } catch (err) {
+    alert('Server error: ' + err.message);
+  }
 }
 </script>
 
