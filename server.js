@@ -1,7 +1,7 @@
 const express = require("express");
 const bodyParser = require("body-parser");
+const fetch = require("node-fetch");
 const { TuyaContext } = require("@tuya/tuya-connector-nodejs");
-const { Client } = require("tplink-smarthome-api");
 
 const app = express();
 app.use(bodyParser.json());
@@ -15,12 +15,8 @@ const tuya = new TuyaContext({
 });
 const TUYA_DEVICE_ID = "eb623898baadaac34bloq9";
 
-/* ===== KASA ===== */
-const kasa = new Client();
-const KASA_IP = "192.168.1.181";
-
-/* ===== STATE CACHE ===== */
-let lastState = false;
+/* ===== KASA BRIDGE ===== */
+const KASA_BRIDGE = "https://path-found-particle-wilderness.trycloudflare.com";
 
 /* ===== TOGGLE BOTH ===== */
 app.post("/toggle", async (req, res) => {
@@ -29,7 +25,7 @@ app.post("/toggle", async (req, res) => {
   try {
     console.log(`🔘 Toggle requested: ${state ? "ON" : "OFF"}`);
 
-    // TUYA
+    /* ---- TUYA ---- */
     await tuya.request({
       path: `/v1.0/iot-03/devices/${TUYA_DEVICE_ID}/commands`,
       method: "POST",
@@ -41,13 +37,14 @@ app.post("/toggle", async (req, res) => {
       }
     });
 
-    // KASA
-    const device = await kasa.getDevice({ host: KASA_IP });
-    await device.setPowerState(state);
+    /* ---- KASA (FORWARDED TO BRIDGE) ---- */
+    await fetch(`${KASA_BRIDGE}/toggle`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ state })
+    });
 
-    lastState = state;
-
-    console.log("✅ Commands sent successfully");
+    console.log("✅ Tuya + Kasa commands sent");
     res.json({ success: true });
 
   } catch (e) {
@@ -59,27 +56,27 @@ app.post("/toggle", async (req, res) => {
 /* ===== STATUS CHECK ===== */
 app.get("/status", async (req, res) => {
   try {
-    // KASA STATUS
-    const device = await kasa.getDevice({ host: KASA_IP });
-    const kasaState = await device.getPowerState();
-
-    // TUYA STATUS
+    /* ---- TUYA STATUS ---- */
     const tuyaStatus = await tuya.request({
       path: `/v1.0/iot-03/devices/${TUYA_DEVICE_ID}/status`,
       method: "GET"
     });
 
-    const tuyaSwitch1 = tuyaStatus.result.find(s => s.code === "switch_1")?.value;
-    const tuyaSwitch2 = tuyaStatus.result.find(s => s.code === "switch_2")?.value;
+    const tuya1 = tuyaStatus.result.find(s => s.code === "switch_1")?.value;
+    const tuya2 = tuyaStatus.result.find(s => s.code === "switch_2")?.value;
 
-    console.log("📡 Status check:");
-    console.log("   Tuya:", tuyaSwitch1, tuyaSwitch2);
-    console.log("   Kasa:", kasaState);
+    /* ---- KASA STATUS (FROM BRIDGE) ---- */
+    const kasaRes = await fetch(`${KASA_BRIDGE}/status`);
+    const kasaStatus = await kasaRes.json();
+
+    console.log("📡 Status:");
+    console.log("   Tuya:", tuya1, tuya2);
+    console.log("   Kasa:", kasaStatus);
 
     res.json({
-      kasa: kasaState,
-      tuya1: tuyaSwitch1,
-      tuya2: tuyaSwitch2
+      tuya1,
+      tuya2,
+      kasa: kasaStatus
     });
 
   } catch (e) {
@@ -88,6 +85,11 @@ app.get("/status", async (req, res) => {
   }
 });
 
+/* ===== ROOT ===== */
+app.get("/", (req, res) => {
+  res.send("🌉 Master Bridge Online");
+});
+
 app.listen(4000, () =>
-  console.log("🚀 Server running on http://localhost:4000")
+  console.log("🚀 Master bridge running on http://localhost:4000")
 );
