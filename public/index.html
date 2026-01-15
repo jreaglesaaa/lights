@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>🎄 Christmas Lights Control</title>
+  <title>🎄 Christmas Lights</title>
   <style>
     body {
       background: #0b1220;
@@ -11,10 +11,7 @@
       text-align: center;
       padding-top: 60px;
     }
-    h1 {
-      font-size: 36px;
-      margin-bottom: 40px;
-    }
+    h1 { font-size: 36px; margin-bottom: 40px; }
     button {
       font-size: 22px;
       padding: 18px 50px;
@@ -26,34 +23,47 @@
       color: black;
       transition: transform 0.1s;
     }
-    button:hover {
-      transform: scale(1.05);
-    }
+    button:hover { transform: scale(1.05); }
   </style>
 </head>
 <body>
 
-<h1>🎄 Christmas Lights Control 🎄</h1>
+<h1>🎄 Christmas Lights</h1>
 
-<button onclick="toggle('on')">ALL ON</button>
-<button onclick="toggle('off')">ALL OFF</button>
+<button onclick="turnAll('on')">ALL ON</button>
+<button onclick="turnAll('off')">ALL OFF</button>
 
 <script>
-async function toggle(action) {
+const KASA_IFTTT_ON = 'https://maker.ifttt.com/trigger/Kasa/with/key/4sN8nwi3EcxSd3Fyymx6z';
+const KASA_IFTTT_OFF = 'https://maker.ifttt.com/trigger/Kasa_off/with/key/4sN8nwi3EcxSd3Fyymx6z';
+
+async function turnAll(action) {
+  // --- Trigger Tuya via server ---
+  const state = action === 'on';
   try {
-    const res = await fetch('/webhook', {
+    const res = await fetch('/tuya', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action })
+      body: JSON.stringify({ state })
     });
     const data = await res.json();
     if (!data.success) {
-      alert('Error: ' + data.error);
-    } else {
-      console.log('Success:', action);
+      alert('Tuya error: ' + data.error);
+      return;
     }
   } catch (err) {
-    alert('Server error: ' + err.message);
+    alert('Tuya server error: ' + err.message);
+    return;
+  }
+
+  // --- Trigger Kasa via IFTTT webhook ---
+  const kasaUrl = action === 'on' ? KASA_IFTTT_ON : KASA_IFTTT_OFF;
+  try {
+    fetch(kasaUrl)
+      .then(r => console.log('Kasa IFTTT triggered:', r.status))
+      .catch(err => console.error('Kasa IFTTT error:', err));
+  } catch (err) {
+    console.error('Kasa IFTTT fetch failed:', err);
   }
 }
 </script>
