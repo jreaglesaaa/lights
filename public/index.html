@@ -1,21 +1,36 @@
-async function refreshStatus() {
-  try {
-    const res = await fetch("/status");
-    const data = await res.json();
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Control Panel</title>
+</head>
 
-    const allOn = data.kasa && data.tuya1 && data.tuya2;
+<body>
+  <button id="powerBtn">OFF</button>
+  <div id="switchStatus"></div>
+  <div id="systemStatus"></div>
 
-    powerBtn.classList.toggle("on", allOn);
-    powerBtn.textContent = allOn ? "ON" : "OFF";
+  <script>
+    const powerBtn = document.getElementById("powerBtn");
+    const switchStatus = document.getElementById("switchStatus");
+    const systemStatus = document.getElementById("systemStatus");
 
-    switchStatus.textContent = `Status: ${allOn ? "ON" : "OFF"}`;
-    switchStatus.className = `status ${allOn ? "on" : "off"}`;
+    async function refreshStatus() {
+      try {
+        const res = await fetch("/status");
+        const data = await res.json();
+        const allOn = data.kasa && data.tuya1 && data.tuya2;
 
-    systemStatus.textContent = "Status Synced ✅";
-  } catch {
-    systemStatus.textContent = "Status Error ❌";
-  }
-}
+        powerBtn.textContent = allOn ? "ON" : "OFF";
+        switchStatus.textContent = `Status: ${allOn ? "ON" : "OFF"}`;
+        systemStatus.textContent = "Status Synced ✅";
+      } catch {
+        systemStatus.textContent = "Status Error ❌";
+      }
+    }
 
-// Auto refresh on load
-refreshStatus();
+    refreshStatus();
+  </script>
+</body>
+</html>
+
