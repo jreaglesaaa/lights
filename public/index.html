@@ -1,36 +1,151 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Control Panel</title>
+<meta charset="UTF-8" />
+<title>🎄 Christmas Control</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<style>
+body {
+  margin: 0;
+  height: 100vh;
+  background: radial-gradient(circle at top, #0b3d2e, #021b12);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: system-ui;
+  color: white;
+}
+
+/* ❄️ SNOW */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image:
+    radial-gradient(2px 2px at 20% 30%, white 40%, transparent 41%),
+    radial-gradient(2px 2px at 70% 60%, white 40%, transparent 41%),
+    radial-gradient(1.5px 1.5px at 40% 80%, white 40%, transparent 41%);
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* 🎄 PANEL */
+.panel {
+  background: rgba(0,0,0,0.55);
+  padding: 40px 30px;
+  border-radius: 28px;
+  text-align: center;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.9);
+}
+
+h1 {
+  margin: 0 0 10px;
+  font-size: 2rem;
+}
+
+.subtitle {
+  opacity: 0.8;
+  margin-bottom: 30px;
+}
+
+/* 🎁 BUTTON */
+.toggle {
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  border: none;
+  font-size: 1.5rem;
+  font-weight: bold;
+  cursor: pointer;
+  background: radial-gradient(circle at top, #555, #111);
+  color: white;
+  transition: 0.4s ease;
+}
+
+.toggle.on {
+  background: radial-gradient(circle at top, #00ff88, #007744);
+  box-shadow:
+    0 0 25px #00ff88,
+    0 0 60px rgba(0,255,136,0.8);
+  transform: scale(1.1);
+}
+
+/* 🎅 STATUS */
+.status {
+  margin-top: 20px;
+  font-size: 1.1rem;
+}
+
+.footer {
+  margin-top: 10px;
+  opacity: 0.7;
+}
+</style>
 </head>
 
 <body>
-  <button id="powerBtn">OFF</button>
-  <div id="switchStatus"></div>
-  <div id="systemStatus"></div>
 
-  <script>
-    const powerBtn = document.getElementById("powerBtn");
-    const switchStatus = document.getElementById("switchStatus");
-    const systemStatus = document.getElementById("systemStatus");
+<div class="panel">
+  <h1>🎄 Christmas Tree</h1>
+  <div class="subtitle">Holiday Power Control</div>
 
-    async function refreshStatus() {
-      try {
-        const res = await fetch("/status");
-        const data = await res.json();
-        const allOn = data.kasa && data.tuya1 && data.tuya2;
+  <button id="toggleBtn" class="toggle">OFF</button>
 
-        powerBtn.textContent = allOn ? "ON" : "OFF";
-        switchStatus.textContent = `Status: ${allOn ? "ON" : "OFF"}`;
-        systemStatus.textContent = "Status Synced ✅";
-      } catch {
-        systemStatus.textContent = "Status Error ❌";
-      }
-    }
+  <div id="status" class="status">Checking status…</div>
+  <div id="footer" class="footer">❄️ Ready</div>
+</div>
 
-    refreshStatus();
-  </script>
+<script>
+const btn = document.getElementById("toggleBtn");
+const statusText = document.getElementById("status");
+const footer = document.getElementById("footer");
+
+let isOn = false;
+
+/* 🔄 SYNC STATUS */
+async function refreshStatus() {
+  try {
+    const res = await fetch("/status");
+    const data = await res.json();
+
+    isOn = data.kasa && data.tuya;
+    updateUI();
+    footer.textContent = "Status synced 🎄";
+  } catch {
+    footer.textContent = "Status error ❌";
+  }
+}
+
+/* 🔘 TOGGLE */
+btn.onclick = async () => {
+  try {
+    isOn = !isOn;
+    updateUI();
+
+    await fetch("/toggle", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ state: isOn })
+    });
+
+    footer.textContent = "Command sent 🎁";
+  } catch {
+    footer.textContent = "Toggle failed ❌";
+  }
+};
+
+function updateUI() {
+  btn.classList.toggle("on", isOn);
+  btn.textContent = isOn ? "ON" : "OFF";
+  statusText.textContent = isOn
+    ? "✨ Christmas Tree ON ✨"
+    : "🌙 Christmas Tree OFF";
+}
+
+refreshStatus();
+</script>
+
 </body>
 </html>
 
