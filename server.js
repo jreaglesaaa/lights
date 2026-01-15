@@ -1,35 +1,44 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const { TuyaContext } = require('@tuya/tuya-connector-nodejs');
-const { Client } = require('tplink-smarthome-api');
+const fetch = require('node-fetch'); // needed for HTTP requests
 
 const app = express();
 app.use(bodyParser.json());
 app.use(express.static('public'));
 
-// ===== TUYA CONFIG =====
-const tuya = new TuyaContext({
-  baseUrl: 'https://openapi.tuyaus.com',
-  accessKey: '95gk8g3nekeu87nney58',
-  secretKey: 'db68aff004494229be673342ceaf0ed7'
-});
-
+// ===== CONFIG =====
+const TUYA_CLIENT_ID = '95gk8g3nekeu87nney58';
+const TUYA_CLIENT_SECRET = 'db68aff004494229be673342ceaf0ed7';
+const TUYA_BASE_URL = 'https://openapi.tuyaus.com';
 const TUYA_DEVICE_ID = 'eb623898baadaac34bloq9';
 
-// ===== KASA CONFIG =====
-const kasaClient = new Client();
-const KASA_IP = '192.168.1.181';
+// IFTTT Kasa Webhooks
+const KASA_IFTTT_ON = 'https://maker.ifttt.com/trigger/Kasa/with/key/4sN8nwi3EcxSd3Fyymx6z';
+const KASA_IFTTT_OFF = 'https://maker.ifttt.com/trigger/Kasa_off/with/key/4sN8nwi3EcxSd3Fyymx6z';
+// ==================
 
-// Toggle EVERYTHING
-app.post('/toggle-all', async (req, res) => {
-  const { state } = req.body;
+const tuya = new TuyaContext({
+  baseUrl: TUYA_BASE_URL,
+  accessKey: TUYA_CLIENT_ID,
+  secretKey: TUYA_CLIENT_SECRET
+});
 
-  if (typeof state !== 'boolean') {
-    return res.status(400).json({ error: 'state must be boolean' });
+/**
+ * Webhook endpoint
+ * Expects JSON body: { action: "on" } or { action: "off" }
+ */
+app.post('/webhook', async (req, res) => {
+  const { action } = req.body;
+
+  if (!['on', 'off'].includes(action)) {
+    return res.status(400).json({ error: 'action must be "on" or "off"' });
   }
 
+  const state = action === 'on';
+
   try {
-    // ---- TUYA: BOTH SWITCHES ----
+    // ---- Tuya: both switches ----
     await tuya.request({
       path: `/v1.0/iot-03/devices/${TUYA_DEVICE_ID}/commands`,
       method: 'POST',
@@ -41,30 +50,21 @@ app.post('/toggle-all', async (req, res) => {
       }
     });
 
-    // ---- KASA ----
-    const device = await kasaClient.getDevice({ host: KASA_IP });
-    const info = await device.getSysInfo();
+    // ---- Kasa: call IFTTT webhook ----
+    const kasaUrl = state ? KASA_IFTTT_ON : KASA_IFTTT_OFF;
+    const kasaRes = await fetch(kasaUrl);
 
-    // If power strip → toggle all outlets
-    if (info.children) {
-      for (const outlet of device.children) {
-        await outlet.setPowerState(state);
-      }
-    } else {
-      // Normal plug
-      await device.setPowerState(state);
+    if (!kasaRes.ok) {
+      throw new Error(`Kasa IFTTT webhook failed with status ${kasaRes.status}`);
     }
 
     res.json({ success: true });
   } catch (err) {
     console.error(err);
-    res.status(500).json({
-      success: false,
-      error: err.message
-    });
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 
-app.listen(3000, () => {
-  console.log('Server running on http://localhost:3000');
-});
+const PORT = 3000;
+app.listen(PORT, () => {
+  console.log(`Server running
