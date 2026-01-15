@@ -1,142 +1,139 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>🎄 Christmas Lights</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body {
-      margin: 0;
-      font-family: system-ui;
-      background: #0b1220;
-      color: white;
-      display: flex;
-      height: 100vh;
-      overflow-x: hidden; /* Prevent horizontal scroll on mobile */
-    }
+<meta charset="UTF-8">
+<title>🎄 Christmas Lights</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  body {
+    margin: 0;
+    font-family: system-ui;
+    background: #0b1220;
+    color: white;
+    overflow-x: hidden; /* prevent horizontal scroll */
+  }
 
-    /* Sidebar */
-    .sidebar {
-      width: 250px;
-      background: #1a1f3a;
-      padding: 30px 20px;
-      box-shadow: 2px 0 10px rgba(0,0,0,0.5);
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-      position: fixed;
-      left: -260px; /* Fully hidden offscreen */
-      top: 0;
-      height: 100%;
-      transition: left 0.3s;
-      z-index: 1000;
-    }
+  /* Sidebar */
+  .sidebar {
+    width: 250px;
+    background: #1a1f3a;
+    padding: 30px 20px;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.5);
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    transform: translateX(-100%); /* hidden by default */
+    transition: transform 0.3s ease;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
 
-    .sidebar.active {
-      left: 0;
-    }
+  .sidebar.active {
+    transform: translateX(0);
+  }
 
-    .sidebar h2 {
-      text-align: center;
-      margin-bottom: 20px;
-      font-size: 24px;
-      color: #ffd700;
-    }
+  .sidebar h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 24px;
+    color: #ffd700;
+  }
 
-    .light-toggle {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: #2a3050;
-      padding: 10px 15px;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
+  .light-toggle {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #2a3050;
+    padding: 10px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
 
-    .light-toggle:hover {
-      background: #3a4070;
-    }
+  .light-toggle:hover {
+    background: #3a4070;
+  }
 
-    .light-toggle span {
-      font-size: 18px;
-    }
+  .light-toggle span {
+    font-size: 18px;
+  }
 
-    /* Sidebar toggle button inside sidebar container */
-    #sidebarToggle {
-      padding: 12px 20px;
-      font-size: 16px;
-      border-radius: 10px;
-      border: none;
-      cursor: pointer;
-      background: linear-gradient(135deg, #ff0000, #00ff66);
-      color: black;
-      box-shadow: 0 0 20px #ff0000;
-      transition: 0.2s;
-      margin-bottom: 20px;
-    }
+  /* Sidebar toggle button */
+  #sidebarToggle {
+    position: fixed;
+    top: 20px;
+    left: 10px; /* initial position */
+    z-index: 1100;
+    padding: 12px 20px;
+    font-size: 16px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    background: linear-gradient(135deg, #ff0000, #00ff66);
+    color: black;
+    box-shadow: 0 0 20px #ff0000;
+    transition: transform 0.3s, left 0.3s;
+  }
 
-    #sidebarToggle:hover {
-      transform: scale(1.05);
-      box-shadow: 0 0 35px #ff0000;
-    }
+  #sidebarToggle:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 35px #ff0000;
+  }
 
-    /* Main area */
-    .main {
-      flex: 1;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      flex-direction: column;
-      text-align: center;
-      padding: 20px;
-      width: 100%;
-    }
+  /* Main area */
+  .main {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    text-align: center;
+    padding: 20px;
+  }
 
-    h1 {
-      font-size: 48px;
-      margin-bottom: 40px;
-      color: #ff4c4c;
-      text-shadow: 0 0 10px #ff0000, 0 0 20px #ffcccc;
-    }
+  h1 {
+    font-size: 48px;
+    margin-bottom: 40px;
+    color: #ff4c4c;
+    text-shadow: 0 0 10px #ff0000, 0 0 20px #ffcccc;
+  }
 
-    /* Big button */
+  #mainBtn {
+    font-size: 36px;
+    padding: 30px 80px;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    background: linear-gradient(135deg, #ff0000, #00ff66);
+    color: black;
+    box-shadow: 0 0 30px #ff0000;
+    transition: transform 0.1s, box-shadow 0.2s;
+  }
+
+  #mainBtn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 50px #ff0000;
+  }
+
+  @media(max-width: 500px) {
     #mainBtn {
-      font-size: 36px;
-      padding: 30px 80px;
-      border: none;
-      border-radius: 20px;
-      cursor: pointer;
-      background: linear-gradient(135deg, #ff0000, #00ff66);
-      color: black;
-      box-shadow: 0 0 30px #ff0000;
-      transition: transform 0.1s, box-shadow 0.2s;
+      font-size: 28px;
+      padding: 25px 50px;
     }
-
-    #mainBtn:hover {
-      transform: scale(1.05);
-      box-shadow: 0 0 50px #ff0000;
+    .sidebar {
+      width: 200px;
+      padding: 20px 15px;
     }
-
-    /* Responsive adjustments */
-    @media(max-width: 500px) {
-      #mainBtn {
-        font-size: 28px;
-        padding: 25px 50px;
-      }
-      .sidebar {
-        width: 200px;
-        left: -210px;
-        padding: 20px 15px;
-      }
-    }
-  </style>
+  }
+</style>
 </head>
 <body>
 
   <!-- Sidebar -->
   <div class="sidebar" id="sidebar">
-    <button id="sidebarToggle" onclick="toggleSidebar()">☰ Switches</button>
     <h2>Switches</h2>
     <div class="light-toggle" onclick="toggleGalaxy()">
       <span>Galaxy (Tuya)</span>
@@ -147,6 +144,9 @@
       <span id="musicStatus">OFF</span>
     </div>
   </div>
+
+  <!-- Sidebar toggle button -->
+  <button id="sidebarToggle" onclick="toggleSidebar()">☰ Switches</button>
 
   <!-- Main area -->
   <div class="main">
@@ -162,9 +162,16 @@
     let galaxyOn = false;
     let musicOn = false;
 
+    const sidebar = document.getElementById('sidebar');
+    const toggleBtn = document.getElementById('sidebarToggle');
+
     function toggleSidebar() {
-      const sidebar = document.getElementById('sidebar');
       sidebar.classList.toggle('active');
+      if(sidebar.classList.contains('active')) {
+        toggleBtn.style.left = sidebar.offsetWidth + 10 + 'px'; // move button with sidebar
+      } else {
+        toggleBtn.style.left = '10px'; // reset when closed
+      }
     }
 
     async function turnAll() {
