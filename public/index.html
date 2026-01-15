@@ -5,68 +5,188 @@
   <title>🎄 Christmas Lights</title>
   <style>
     body {
+      margin: 0;
+      font-family: system-ui;
       background: #0b1220;
       color: white;
-      font-family: system-ui;
-      text-align: center;
-      padding-top: 60px;
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
     }
-    h1 { font-size: 36px; margin-bottom: 40px; }
-    button {
-      font-size: 22px;
-      padding: 18px 50px;
-      margin: 15px;
-      border-radius: 12px;
+
+    /* Sidebar */
+    .sidebar {
+      width: 250px;
+      background: #1a1f3a;
+      padding: 30px 20px;
+      box-shadow: 2px 0 10px rgba(0,0,0,0.5);
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .sidebar h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 24px;
+      color: #ffd700;
+    }
+
+    .light-toggle {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #2a3050;
+      padding: 10px 15px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .light-toggle:hover {
+      background: #3a4070;
+    }
+
+    .light-toggle span {
+      font-size: 18px;
+    }
+
+    /* Main area */
+    .main {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      text-align: center;
+      padding: 20px;
+    }
+
+    h1 {
+      font-size: 48px;
+      margin-bottom: 40px;
+      color: #ff4c4c;
+      text-shadow: 0 0 10px #ff0000, 0 0 20px #ffcccc;
+    }
+
+    /* Big button */
+    #mainBtn {
+      font-size: 36px;
+      padding: 30px 80px;
       border: none;
+      border-radius: 20px;
       cursor: pointer;
       background: linear-gradient(135deg, #ff0000, #00ff66);
       color: black;
-      transition: transform 0.1s;
+      box-shadow: 0 0 30px #ff0000;
+      transition: transform 0.1s, box-shadow 0.2s;
     }
-    button:hover { transform: scale(1.05); }
+
+    #mainBtn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 50px #ff0000;
+    }
   </style>
 </head>
 <body>
 
-<h1>🎄 Christmas Lights</h1>
+  <!-- Sidebar with individual toggles -->
+  <div class="sidebar">
+    <h2>Individual Lights</h2>
+    <div class="light-toggle" onclick="toggleIndividual(1)">
+      <span>Light 1</span>
+      <span id="status1">OFF</span>
+    </div>
+    <div class="light-toggle" onclick="toggleIndividual(2)">
+      <span>Light 2</span>
+      <span id="status2">OFF</span>
+    </div>
+    <div class="light-toggle" onclick="toggleIndividual(3)">
+      <span>Light 3</span>
+      <span id="status3">OFF</span>
+    </div>
+    <div class="light-toggle" onclick="toggleIndividual(4)">
+      <span>Light 4</span>
+      <span id="status4">OFF</span>
+    </div>
+  </div>
 
-<button onclick="turnAll('on')">ALL ON</button>
-<button onclick="turnAll('off')">ALL OFF</button>
+  <!-- Main area with big button -->
+  <div class="main">
+    <h1>🎄 Christmas Lights</h1>
+    <button id="mainBtn" onclick="turnAll()">ALL ON</button>
+  </div>
 
-<script>
-const KASA_IFTTT_ON = 'https://maker.ifttt.com/trigger/Kasa/with/key/4sN8nwi3EcxSd3Fyymx6z';
-const KASA_IFTTT_OFF = 'https://maker.ifttt.com/trigger/Kasa-off/with/key/4sN8nwi3EcxSd3Fyymx6z';
+  <script>
+    const KASA_IFTTT_ON = 'https://maker.ifttt.com/trigger/Kasa/with/key/4sN8nwi3EcxSd3Fyymx6z';
+    const KASA_IFTTT_OFF = 'https://maker.ifttt.com/trigger/Kasa-off/with/key/4sN8nwi3EcxSd3Fyymx6z';
 
-async function turnAll(action) {
-  // --- Trigger Tuya via server ---
-  const state = action === 'on';
-  try {
-    const res = await fetch('/tuya', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ state })
-    });
-    const data = await res.json();
-    if (!data.success) {
-      alert('Tuya error: ' + data.error);
-      return;
+    let allOn = false;
+    const individualState = [false, false, false, false]; // 4 individual lights
+
+    async function turnAll() {
+      const action = allOn ? 'off' : 'on';
+
+      // --- Trigger Tuya via server ---
+      try {
+        const res = await fetch('/tuya', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ state: action === 'on' })
+        });
+        const data = await res.json();
+        if (!data.success) {
+          alert('Tuya error: ' + data.error);
+          return;
+        }
+      } catch (err) {
+        alert('Tuya server error: ' + err.message);
+        return;
+      }
+
+      // --- Trigger Kasa via IFTTT webhook ---
+      const kasaUrl = action === 'on' ? KASA_IFTTT_ON : KASA_IFTTT_OFF;
+      try {
+        fetch(kasaUrl).then(r => console.log('Kasa IFTTT triggered:', r.status));
+      } catch (err) {
+        console.error('Kasa IFTTT fetch failed:', err);
+      }
+
+      // Update UI
+      allOn = !allOn;
+      document.getElementById('mainBtn').textContent = allOn ? 'ALL OFF' : 'ALL ON';
+      for (let i = 0; i < individualState.length; i++) {
+        individualState[i] = allOn;
+        document.getElementById('status'+(i+1)).textContent = allOn ? 'ON' : 'OFF';
+      }
     }
-  } catch (err) {
-    alert('Tuya server error: ' + err.message);
-    return;
-  }
 
-  // --- Trigger Kasa via IFTTT webhook ---
-  const kasaUrl = action === 'on' ? KASA_IFTTT_ON : KASA_IFTTT_OFF;
-  try {
-    fetch(kasaUrl)
-      .then(r => console.log('Kasa IFTTT triggered:', r.status))
-      .catch(err => console.error('Kasa IFTTT error:', err));
-  } catch (err) {
-    console.error('Kasa IFTTT fetch failed:', err);
-  }
-}
-</script>
+    async function toggleIndividual(index) {
+      const currentState = individualState[index-1];
+      const action = currentState ? 'off' : 'on';
+
+      // --- Trigger Tuya for individual ---
+      try {
+        const res = await fetch('/tuya', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ state: action === 'on', id: index })
+        });
+        const data = await res.json();
+        if (!data.success) {
+          alert('Tuya error: ' + data.error);
+          return;
+        }
+      } catch (err) {
+        alert('Tuya server error: ' + err.message);
+        return;
+      }
+
+      // Update UI
+      individualState[index-1] = !currentState;
+      document.getElementById('status'+index).textContent = individualState[index-1] ? 'ON' : 'OFF';
+    }
+  </script>
 
 </body>
 </html>
