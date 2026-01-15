@@ -3,69 +3,68 @@ const bodyParser = require('body-parser');
 const { TuyaContext } = require('@tuya/tuya-connector-nodejs');
 const { Client } = require('tplink-smarthome-api');
 
-// ===== CONFIG =====
-const client_id = '95gk8g3nekeu87nney58';
-const client_secret = 'db68aff004494229be673342ceaf0ed7';
-const baseUrl = 'https://openapi.tuyaus.com';
-const device_id = 'eb623898baadaac34bloq9';
-
-const CHRISTMAS_TREE_IP = '192.168.1.181';
-const PORT = 3000;
-// ==================
-
 const app = express();
 app.use(bodyParser.json());
-app.use(express.static('public')); // serve frontend
+app.use(express.static('public'));
 
-// Tuya
+// ===== TUYA CONFIG =====
 const tuya = new TuyaContext({
-  baseUrl,
-  accessKey: client_id,
-  secretKey: client_secret
+  baseUrl: 'https://openapi.tuyaus.com',
+  accessKey: '95gk8g3nekeu87nney58',
+  secretKey: 'db68aff004494229be673342ceaf0ed7'
 });
 
-// Kasa
+const TUYA_DEVICE_ID = 'eb623898baadaac34bloq9';
+
+// ===== KASA CONFIG =====
 const kasaClient = new Client();
+const KASA_IP = '192.168.1.181';
 
-// Toggle endpoint
-app.post('/toggle', async (req, res) => {
-  const { switch: switchNum, state } = req.body;
+// Toggle EVERYTHING
+app.post('/toggle-all', async (req, res) => {
+  const { state } = req.body;
 
-  if (![1, 2].includes(switchNum)) {
-    return res.status(400).json({ error: 'switch must be 1 or 2' });
-  }
   if (typeof state !== 'boolean') {
-    return res.status(400).json({ error: 'state must be true or false' });
+    return res.status(400).json({ error: 'state must be boolean' });
   }
 
   try {
-    // ---- Tuya ----
+    // ---- TUYA: BOTH SWITCHES ----
     await tuya.request({
-      path: `/v1.0/iot-03/devices/${device_id}/commands`,
+      path: `/v1.0/iot-03/devices/${TUYA_DEVICE_ID}/commands`,
       method: 'POST',
       body: {
         commands: [
-          {
-            code: `switch_${switchNum}`,
-            value: state
-          }
+          { code: 'switch_1', value: state },
+          { code: 'switch_2', value: state }
         ]
       }
     });
 
-    // ---- Kasa ----
-    const kasaDevice = await kasaClient.getDevice({
-      host: CHRISTMAS_TREE_IP
-    });
-    await kasaDevice.setPowerState(state);
+    // ---- KASA ----
+    const device = await kasaClient.getDevice({ host: KASA_IP });
+    const info = await device.getSysInfo();
+
+    // If power strip → toggle all outlets
+    if (info.children) {
+      for (const outlet of device.children) {
+        await outlet.setPowerState(state);
+      }
+    } else {
+      // Normal plug
+      await device.setPowerState(state);
+    }
 
     res.json({ success: true });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ success: false, error: err.message });
+    res.status(500).json({
+      success: false,
+      error: err.message
+    });
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+app.listen(3000, () => {
+  console.log('Server running on http://localhost:3000');
 });
