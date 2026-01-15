@@ -23,6 +23,16 @@
       display: flex;
       flex-direction: column;
       gap: 15px;
+      position: fixed;
+      left: -250px; /* hidden by default */
+      top: 0;
+      height: 100%;
+      transition: left 0.3s;
+      z-index: 1000;
+    }
+
+    .sidebar.active {
+      left: 0;
     }
 
     .sidebar h2 {
@@ -60,6 +70,7 @@
       flex-direction: column;
       text-align: center;
       padding: 20px;
+      width: 100%;
     }
 
     h1 {
@@ -86,48 +97,72 @@
       transform: scale(1.05);
       box-shadow: 0 0 50px #ff0000;
     }
+
+    /* Sidebar toggle button */
+    #sidebarToggle {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      z-index: 1100;
+      padding: 12px 20px;
+      font-size: 16px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      background: linear-gradient(135deg, #ff0000, #00ff66);
+      color: black;
+      box-shadow: 0 0 20px #ff0000;
+      transition: 0.2s;
+    }
+
+    #sidebarToggle:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 35px #ff0000;
+    }
   </style>
 </head>
 <body>
 
-  <!-- Sidebar with individual toggles -->
-  <div class="sidebar">
-    <h2>Individual Lights</h2>
-    <div class="light-toggle" onclick="toggleIndividual(1)">
-      <span>Light 1</span>
-      <span id="status1">OFF</span>
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <h2>Switches</h2>
+    <div class="light-toggle" onclick="toggleGalaxy()">
+      <span>Galaxy (Tuya)</span>
+      <span id="galaxyStatus">OFF</span>
     </div>
-    <div class="light-toggle" onclick="toggleIndividual(2)">
-      <span>Light 2</span>
-      <span id="status2">OFF</span>
-    </div>
-    <div class="light-toggle" onclick="toggleIndividual(3)">
-      <span>Light 3</span>
-      <span id="status3">OFF</span>
-    </div>
-    <div class="light-toggle" onclick="toggleIndividual(4)">
-      <span>Light 4</span>
-      <span id="status4">OFF</span>
+    <div class="light-toggle" onclick="toggleMusic()">
+      <span>Music (Kasa)</span>
+      <span id="musicStatus">OFF</span>
     </div>
   </div>
 
-  <!-- Main area with big button -->
+  <!-- Sidebar toggle button -->
+  <button id="sidebarToggle" onclick="toggleSidebar()">☰ Switches</button>
+
+  <!-- Main area -->
   <div class="main">
     <h1>🎄 Christmas Lights</h1>
     <button id="mainBtn" onclick="turnAll()">ALL ON</button>
   </div>
 
   <script>
+    // IFTTT and Tuya endpoints
     const KASA_IFTTT_ON = 'https://maker.ifttt.com/trigger/Kasa/with/key/4sN8nwi3EcxSd3Fyymx6z';
     const KASA_IFTTT_OFF = 'https://maker.ifttt.com/trigger/Kasa-off/with/key/4sN8nwi3EcxSd3Fyymx6z';
 
     let allOn = false;
-    const individualState = [false, false, false, false]; // 4 individual lights
+    let galaxyOn = false;
+    let musicOn = false;
+
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      sidebar.classList.toggle('active');
+    }
 
     async function turnAll() {
       const action = allOn ? 'off' : 'on';
 
-      // --- Trigger Tuya via server ---
+      // --- Tuya Galaxy ---
       try {
         const res = await fetch('/tuya', {
           method: 'POST',
@@ -144,7 +179,7 @@
         return;
       }
 
-      // --- Trigger Kasa via IFTTT webhook ---
+      // --- Kasa Music ---
       const kasaUrl = action === 'on' ? KASA_IFTTT_ON : KASA_IFTTT_OFF;
       try {
         fetch(kasaUrl).then(r => console.log('Kasa IFTTT triggered:', r.status));
@@ -154,23 +189,20 @@
 
       // Update UI
       allOn = !allOn;
+      galaxyOn = allOn;
+      musicOn = allOn;
       document.getElementById('mainBtn').textContent = allOn ? 'ALL OFF' : 'ALL ON';
-      for (let i = 0; i < individualState.length; i++) {
-        individualState[i] = allOn;
-        document.getElementById('status'+(i+1)).textContent = allOn ? 'ON' : 'OFF';
-      }
+      document.getElementById('galaxyStatus').textContent = galaxyOn ? 'ON' : 'OFF';
+      document.getElementById('musicStatus').textContent = musicOn ? 'ON' : 'OFF';
     }
 
-    async function toggleIndividual(index) {
-      const currentState = individualState[index-1];
-      const action = currentState ? 'off' : 'on';
-
-      // --- Trigger Tuya for individual ---
+    async function toggleGalaxy() {
+      const action = galaxyOn ? 'off' : 'on';
       try {
         const res = await fetch('/tuya', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ state: action === 'on', id: index })
+          body: JSON.stringify({ state: action === 'on' })
         });
         const data = await res.json();
         if (!data.success) {
@@ -182,9 +214,20 @@
         return;
       }
 
-      // Update UI
-      individualState[index-1] = !currentState;
-      document.getElementById('status'+index).textContent = individualState[index-1] ? 'ON' : 'OFF';
+      galaxyOn = !galaxyOn;
+      document.getElementById('galaxyStatus').textContent = galaxyOn ? 'ON' : 'OFF';
+    }
+
+    function toggleMusic() {
+      const action = musicOn ? 'off' : 'on';
+      const kasaUrl = action === 'on' ? KASA_IFTTT_ON : KASA_IFTTT_OFF;
+      try {
+        fetch(kasaUrl).then(r => console.log('Kasa IFTTT triggered:', r.status));
+      } catch (err) {
+        console.error('Kasa IFTTT fetch failed:', err);
+      }
+      musicOn = !musicOn;
+      document.getElementById('musicStatus').textContent = musicOn ? 'ON' : 'OFF';
     }
   </script>
 
