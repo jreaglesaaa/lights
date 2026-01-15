@@ -1,7 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const { TuyaContext } = require('@tuya/tuya-connector-nodejs');
-const fetch = require('node-fetch'); // needed for HTTP requests
+const fetch = require('node-fetch'); // For calling IFTTT webhooks
 
 const app = express();
 app.use(bodyParser.json());
@@ -24,10 +24,7 @@ const tuya = new TuyaContext({
   secretKey: TUYA_CLIENT_SECRET
 });
 
-/**
- * Webhook endpoint
- * Expects JSON body: { action: "on" } or { action: "off" }
- */
+// ---------------- Webhook endpoint ----------------
 app.post('/webhook', async (req, res) => {
   const { action } = req.body;
 
@@ -50,7 +47,7 @@ app.post('/webhook', async (req, res) => {
       }
     });
 
-    // ---- Kasa: call IFTTT webhook ----
+    // ---- Kasa via IFTTT webhook ----
     const kasaUrl = state ? KASA_IFTTT_ON : KASA_IFTTT_OFF;
     const kasaRes = await fetch(kasaUrl);
 
@@ -65,6 +62,8 @@ app.post('/webhook', async (req, res) => {
   }
 });
 
+// ---------------- Start server ----------------
 const PORT = 3000;
 app.listen(PORT, () => {
-  console.log(`Server running
+  console.log(`Server running on http://localhost:${PORT}`);
+});
