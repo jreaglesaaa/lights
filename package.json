@@ -1,22 +1,21 @@
 {
   "name": "toggle",
   "version": "1.0.0",
-  "description": "",
+  "description": "Tuya + Kasa control server with Cloudflare bridge",
   "main": "server.js",
+  "type": "commonjs",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
+  "engines": {
+    "node": ">=18"
+  },
   "dependencies": {
     "@tuya/tuya-connector-nodejs": "^2.1.2",
     "axios": "^1.13.2",
     "body-parser": "^2.2.2",
     "express": "^5.2.1",
+    "node-fetch": "^2.6.9",
     "tplink-smarthome-api": "^5.0.0"
   }
 }
-
