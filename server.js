@@ -1,59 +1,52 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-const { TuyaContext } = require('@tuya/tuya-connector-nodejs');
-const { Client } = require('tplink-smarthome-api');
-
-// ===== CONFIG =====
-const client_id     = '95gk8g3nekeu87nney58';
-const client_secret = 'db68aff004494229be673342ceaf0ed7';
-const baseUrl       = 'https://openapi.tuyaus.com';
-const device_id     = 'eb623898baadaac34bloq9';
-const CHRISTMAS_TREE_IP = '192.168.1.181';
-// ==================
+const express = require("express");
+const bodyParser = require("body-parser");
+const { TuyaContext } = require("@tuya/tuya-connector-nodejs");
+const { Client } = require("tplink-smarthome-api");
 
 const app = express();
 app.use(bodyParser.json());
-app.use(express.static('public')); // serve frontend
+app.use(express.static("public"));
 
+/* ===== TUYA CONFIG ===== */
 const tuya = new TuyaContext({
-  baseUrl: baseUrl,
-  accessKey: client_id,
-  secretKey: client_secret
+  baseUrl: "https://openapi.tuyaus.com",
+  accessKey: "95gk8g3nekeu87nney58",
+  secretKey: "db68aff004494229be673342ceaf0ed7"
 });
+const TUYA_DEVICE_ID = "eb623898baadaac34bloq9";
 
-const kasaClient = new Client();
+/* ===== KASA CONFIG ===== */
+const kasa = new Client();
+const KASA_IP = "192.168.1.181";
 
-// Endpoint to toggle an individual switch
-app.post('/toggle', async (req, res) => {
-  const { switch: switchNum, state } = req.body;
-
-  if (![1, 2].includes(switchNum)) {
-    return res.status(400).json({ error: 'switch must be 1 or 2' });
-  }
-
-  if (typeof state !== 'boolean') {
-    return res.status(400).json({ error: 'state must be true or false' });
-  }
+/* ===== TOGGLE BOTH ===== */
+app.post("/toggle", async (req, res) => {
+  const { state } = req.body;
 
   try {
-    // ---- Tuya command ----
-    const body = { commands: [{ code: `switch_${switchNum}`, value: state }] };
+    // TUYA
     await tuya.request({
-      path: `/v1.0/iot-03/devices/${device_id}/commands`,
-      method: 'POST',
-      body: body
+      path: `/v1.0/iot-03/devices/${TUYA_DEVICE_ID}/commands`,
+      method: "POST",
+      body: {
+        commands: [
+          { code: "switch_1", value: state },
+          { code: "switch_2", value: state }
+        ]
+      }
     });
 
-    // ---- Kasa command ----
-    const kasaDevice = await kasaClient.getDevice({ host: CHRISTMAS_TREE_IP });
-    await kasaDevice.setPowerState(state);
+    // KASA
+    const device = await kasa.getDevice({ host: KASA_IP });
+    await device.setPowerState(state);
 
     res.json({ success: true });
-  } catch (err) {
-    console.error('Error sending command:', err);
-    res.status(500).json({ success: false, error: err.message });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: e.message });
   }
 });
 
-const PORT = 3000;
-app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+app.listen(4000, () =>
+  console.log("Server running on http://localhost:4000")
+);
