@@ -1,67 +1,46 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>Christmas Power Control 🎄</title>
+  <title>Christmas Power 🎄</title>
   <style>
     body {
       background: #0b1220;
       color: white;
       font-family: system-ui;
       text-align: center;
-      padding-top: 50px;
+      padding-top: 60px;
     }
 
     button {
-      font-size: 18px;
-      padding: 14px 26px;
-      margin: 10px;
+      font-size: 22px;
+      padding: 18px 40px;
+      border-radius: 14px;
       border: none;
-      border-radius: 10px;
       cursor: pointer;
-      background: linear-gradient(135deg, #ff0000, #00ff66);
-      color: black;
-    }
-
-    button.off {
-      background: #333;
-      color: #aaa;
+      background: linear-gradient(135deg, red, green);
     }
   </style>
 </head>
 <body>
 
-  <h1>🎄 Christmas Tree Power 🎄</h1>
+<h1>🎄 Christmas Power 🎄</h1>
 
-  <button onclick="toggle(1, true)">Switch 1 ON</button>
-  <button class="off" onclick="toggle(1, false)">Switch 1 OFF</button>
+<button onclick="toggleAll(true)">ALL ON</button>
+<br><br>
+<button onclick="toggleAll(false)">ALL OFF</button>
 
-  <br>
+<script>
+async function toggleAll(state) {
+  const res = await fetch('/toggle-all', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ state })
+  });
 
-  <button onclick="toggle(2, true)">Switch 2 ON</button>
-  <button class="off" onclick="toggle(2, false)">Switch 2 OFF</button>
-
-  <script>
-    async function toggle(switchNum, state) {
-      try {
-        const res = await fetch('/toggle', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            switch: switchNum,
-            state
-          })
-        });
-
-        const data = await res.json();
-        if (!data.success) {
-          alert('Failed: ' + data.error);
-        }
-      } catch (err) {
-        alert('Server error');
-      }
-    }
-  </script>
+  const data = await res.json();
+  if (!data.success) alert(data.error);
+}
+</script>
 
 </body>
 </html>
